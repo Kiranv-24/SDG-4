@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@videosdk.live/react-sdk": "^0.3.4",
+    "lucide-react": "^0.445.0",
+    "react-player": "^2.16.0"
+  }
+}

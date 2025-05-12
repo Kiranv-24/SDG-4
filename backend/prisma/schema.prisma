@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Conversation {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  participantIds String[]
+  messages       Chat[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([participantIds])
+}
+
+model Chat {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  senderId       String
+  receiverId     String
+  message        String
+  timestamp      DateTime     @default(now())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  @@index([senderId, receiverId])
+  @@index([conversationId])
+}
+
+model Class {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  subjects Subject[]
+  Course   Course[]
+  Test     Test[]
+}
+
+model Subject {
+  id       String     @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  class    Class      @relation(fields: [classId], references: [id])
+  classId  String
+  tests    Test[]
+  Material Material[]
+}
+
+model Material {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   String
+  owner     User    @relation(fields: [userId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  subjectId String
+  classId   String
+  userId    String
+}
+
+model User {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String        @unique
+  classname       String
+  password        String
+  phonenumber     String        @unique
+  role            String        @default("student")
+  courses         Course[]
+  tests           Test[]
+  hostedMeetings  Meeting[]     @relation("HostedMeetings")
+  meetingParticipant MeetingParticipant[]
+  Material        Material[]
+  Question        Question[]
+  Answer          Answer[]
+  TestAttempt     TestAttempt[]
+}
+
+model MeetingParticipant {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  meetingId String   @db.ObjectId
+  userId    String   @db.ObjectId
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  joinedAt  DateTime @default(now())
+
+  @@unique([meetingId, userId])
+}
+
+model Meeting {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomId        String   @unique
+  title         String
+  description   String?
+  status        String   @default("ACTIVE")
+  hostId        String   @db.ObjectId
+  host          User     @relation("HostedMeetings", fields: [hostId], references: [id])
+  participants  MeetingParticipant[]
+  dates         MeetingDate[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model MeetingDate {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      DateTime
+  meetingId String   @db.ObjectId
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+}
+
+model Question {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  answers   Answer[]
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Answer {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  text       String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  owner      User      @relation(fields: [userId], references: [id])
+  question   Question? @relation(fields: [questionId], references: [id])
+  questionId String?
+  userId     String
+}
+
+model Course {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  owner       User   @relation(fields: [userId], references: [id])
+  userId      String
+  description String
+  img         String
+  class       Class  @relation(fields: [classId], references: [id])
+  classId     String
+}
+
+model Test {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  description String
+  title       String   @unique
+  mentorId    String
+  assetUrl    String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  owner       User     @relation(fields: [mentorId], references: [id])
+  class       Class    @relation(fields: [classId], references: [id])
+  classId     String
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectId   String
+
+  attempts  TestAttempt[]
+  questions TestQuestion[]
+}
+
+model TestQuestion {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  testId   String
+  question String
+
+  test        Test             @relation(fields: [testId], references: [id])
+  submissions TestSubmission[]
+}
+
+model TestSubmission {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  attemptId   String
+  questionId  String
+  answer      String
+  submittedAt DateTime @default(now())
+
+  attempt  TestAttempt  @relation(fields: [attemptId], references: [id])
+  question TestQuestion @relation(fields: [questionId], references: [id])
+}
+
+model TestAttempt {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  testId      String
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  user   User  @relation(fields: [userId], references: [id])
+  test   Test  @relation(fields: [testId], references: [id])
+  submissions TestSubmission[]
+}
