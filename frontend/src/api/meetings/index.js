@@ -29,8 +29,14 @@ const getMeetingsMentor = async () => {
   return data;
 };
 const bookMeeting = async (meetinginfo) => {
-  const { data } = await AuthAPI().post("/user/book-meeting", meetinginfo);
-  return data;
+  try {
+    console.log("Booking meeting with data:", meetinginfo);
+    const { data } = await AuthAPI().post("/user/book-meeting", meetinginfo);
+    return data;
+  } catch (error) {
+    console.error("Error booking meeting:", error.response?.data || error.message);
+    throw error;
+  }
 };
 const getMyRequestedMeetings = async () => {
   const { data } = await AuthAPI().get("/user/my-meetings");

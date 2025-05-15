@@ -114,82 +114,61 @@ const createMeeting = async (req, res) => {
 
     const { roomId } = await response.json();
 
-    try {
-      // First create the meeting with host
-      const meeting = await prisma.meeting.create({
-        data: {
-          roomId,
-          title: title || 'New Meeting',
-          description: description || '',
-          status: 'ACTIVE',
-          hostId: userId
-        }
-      });
-
-      // Then create participants if any
-      if (participants && participants.length > 0) {
-        await prisma.meetingParticipant.createMany({
-          data: participants.map(participantId => ({
-            meetingId: meeting.id,
-            userId: participantId
-          }))
-        });
+    // First create the meeting with just the host
+    const meeting = await prisma.meeting.create({
+      data: {
+        roomId,
+        title: title || 'New Meeting',
+        description: description || '',
+        status: 'ACTIVE',
+        hostId: userId
       }
+    });
 
-      // Fetch the complete meeting data with participants
-      const completeData = await prisma.meeting.findUnique({
-        where: { id: meeting.id },
-        include: {
-          host: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          participants: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true
-                }
+    // Then create participants if any
+    if (participants.length > 0) {
+      await prisma.meetingParticipant.createMany({
+        data: participants.map(participantId => ({
+          meetingId: meeting.id,
+          userId: participantId
+        }))
+      });
+    }
+
+    // Fetch the complete meeting data with participants
+    const completeData = await prisma.meeting.findUnique({
+      where: { id: meeting.id },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
               }
             }
           }
         }
-      });
+      }
+    });
 
-      return res.status(200).json({ 
-        success: true,
-        meeting: {
-          id: completeData.id,
-          roomId: completeData.roomId,
-          title: completeData.title,
-          hostId: completeData.host.id,
-          host: {
-            id: completeData.host.id,
-            name: completeData.host.name,
-            email: completeData.host.email
-          },
-          participants: completeData.participants.map(p => ({
-            id: p.user.id,
-            name: p.user.name,
-            email: p.user.email
-          }))
-        },
-        token: videoToken,
-        roomId
-      });
-    } catch (error) {
-      console.error('Detailed error:', error);
-      return res.status(500).json({ 
-        success: false,
-        error: 'Failed to create meeting',
-        details: error.message 
-      });
-    }
+    return res.status(200).json({ 
+      success: true,
+      meeting: {
+        id: meeting.id,
+        roomId: meeting.roomId,
+        title: meeting.title,
+        hostId: userId,
+        participants: completeData.participants.map(p => ({
+          id: p.user.id,
+          name: p.user.name,
+          email: p.user.email
+        }))
+      },
+      token: videoToken,
+      roomId
+    });
 
   } catch (error) {
     console.error('Error creating meeting:', error);
@@ -200,7 +179,6 @@ const createMeeting = async (req, res) => {
     });
   }
 };
-
 
 const getMeetings = async (req, res) => {
   try {

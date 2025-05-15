@@ -10,6 +10,7 @@ import {
 import authMiddleware from "../middlewares/Auth.middleware";
 import messageController from "../controllers/message/message";
 import videoCallController from "../controllers/videocall/videoController";
+import { PrismaClient } from "@prisma/client";
 //import testController from "../controllers/test/test";
 
 const router = express.Router();
@@ -44,6 +45,64 @@ router.delete("/delete-test", authMiddleware, testController.deleteTest);
 router.get("/get-my-test", authMiddleware, testController.getUserTestByClass);
 router.get("/user-details", authMiddleware, userController.userDetails);
 router.post("/book-meeting", authMiddleware, meetController.bookMeeting);
+
+// Test endpoint for booking meetings
+router.post("/test-book-meeting", authMiddleware, async (req, res) => {
+  try {
+    // Simplified meeting creation for testing
+    const prisma = new PrismaClient();
+    const { dates, notes, guestId, title } = req.body;
+    const hostId = req.user.id;
+    
+    console.log("Test booking with:", { hostId, guestId, dates, notes, title });
+    
+    // Generate a room ID
+    const roomId = `room_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    const meetingTitle = title || `Test Meeting - ${new Date().toLocaleDateString()}`;
+    
+    // Create the meeting with the correct structure
+    const meeting = await prisma.meeting.create({
+      data: {
+        hostId,
+        title: meetingTitle,
+        status: "requested",
+        notes: notes || "",
+        roomId,
+        dates: {
+          create: dates.map(date => ({ date }))
+        },
+        // Add the guest as a participant
+        participants: {
+          create: [
+            {
+              userId: guestId,
+              role: "guest"
+            }
+          ]
+        }
+      },
+      include: {
+        dates: true,
+        participants: true
+      }
+    });
+    
+    return res.status(201).json({
+      success: true,
+      message: "Test meeting created successfully",
+      data: meeting
+    });
+  } catch (error) {
+    console.error("Test booking error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in test booking",
+      error: error.message
+    });
+  }
+});
+
 router.get("/get-meetings", authMiddleware, meetController.getMeetings);
 router.get("/my-meetings", authMiddleware, meetController.showbookedMeetings);
 router.get("/mentors", authMiddleware, meetController.getmentorsinfo);

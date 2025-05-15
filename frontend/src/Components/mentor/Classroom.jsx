@@ -37,6 +37,11 @@ const navigationLink=[
         icons:Pencil,   
     },
     {
+        name:'Digital Library',
+        path:'/mentor/digital-library',
+        icons:Pencil,
+    },
+    {
         name:'Reach fast by news',
         path:'/mentor/meetings',
         icons:Pencil,

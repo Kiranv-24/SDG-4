@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getSubmissionDetails, scoreTestAttempt } from "../../api/test"; // Adjust the path as needed
+import { getSubmissionDetails, scoreTestAttempt } from "../../api/test";
 import {
   Card,
   CardContent,
@@ -8,22 +8,41 @@ import {
   CircularProgress,
   TextField,
   Button,
+  Alert,
+  Box,
 } from "@mui/material";
 import toast from "react-hot-toast";
 
 function SubmissionDetails() {
   const [details, setDetails] = useState([]);
+  const [attemptInfo, setAttemptInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const [score, setScore] = useState("");
-  const getter = async () => {
+  
+  const fetchDetails = async () => {
     try {
+      setLoading(true);
       const data = await getSubmissionDetails(id);
-      console.log(data, "data");
-      setDetails(data.message);
+      console.log("Submission details:", data);
+      
+      if (data.success) {
+        setDetails(data.message || []);
+        setAttemptInfo(data.attemptInfo);
+        
+        // Check if there's already a score
+        if (data.attemptInfo && data.attemptInfo.score !== null && data.attemptInfo.score !== undefined) {
+          setScore(data.attemptInfo.score.toString());
+        }
+      } else {
+        setError("Failed to load submission details: " + data.message);
+      }
     } catch (error) {
       console.error("Error fetching submission details:", error);
+      setError("Failed to load submission details: " + (error.message || "Unknown error"));
       toast.error("Failed to load submission details");
     } finally {
       setLoading(false);
@@ -31,31 +50,114 @@ function SubmissionDetails() {
   };
 
   const scoreTest = async () => {
+    if (!score || isNaN(parseInt(score))) {
+      toast.error("Please enter a valid numeric score");
+      return;
+    }
+    
     try {
+      setSubmitting(true);
+      console.log("Submitting score:", { attemptId: id, score });
       const data = await scoreTestAttempt(id, score);
-      toast.success("Score submitted successfully.");
-      navigate(`/mentor/submission/${details[0]?.attempt?.test?.id}`);
+      
+      if (data.success) {
+        toast.success("Score submitted successfully");
+        
+        // Go back to the test submissions page
+        if (attemptInfo?.test?.id) {
+          navigate(`/mentor/submission/${attemptInfo.test.id}`);
+        } else {
+          navigate(-1); // Go back if we don't have the test ID
+        }
+      } else {
+        toast.error(data.message || "Failed to submit score");
+      }
     } catch (err) {
-      console.log(err, "err");
-      toast.error("Failed to submit score.");
+      console.error("Error submitting score:", err);
+      toast.error("Failed to submit score: " + (err.message || "Unknown error"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   useEffect(() => {
-    getter();
-  }, []);
+    fetchDetails();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="p-5 flex justify-center items-center h-[50vh]">
+        <CircularProgress />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-5">
+        <h1 className="text-3xl font-merri mb-5">Submission Details</h1>
+        <Alert severity="error" className="mb-4">
+          {error}
+        </Alert>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate(-1)}
+          className="mt-4"
+        >
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  if (!attemptInfo) {
+    return (
+      <div className="p-5">
+        <h1 className="text-3xl font-merri mb-5">Submission Details</h1>
+        <Alert severity="warning" className="mb-4">
+          Test attempt not found
+        </Alert>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate(-1)}
+          className="mt-4"
+        >
+          Go Back
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className=" p-5">
+    <div className="p-5">
       <h1 className="text-3xl font-merri mb-5">Submission Details</h1>
-      {loading ? (
-        <div className="flex justify-center items-center">
-          <CircularProgress />
-        </div>
-      ) : (
-        <div className="details-container space-y-4">
-          {details.length > 0 ? (
-            details.map((item) => (
+      
+      <Box className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <Typography variant="h6" className="font-semibold">
+          Student: {attemptInfo.user?.name || "Unknown"}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Test: {attemptInfo.test?.title || "Unknown"}
+        </Typography>
+        <Box className="flex flex-col md:flex-row gap-4 mt-2">
+          <Typography variant="body2" color="text.secondary">
+            Started: {attemptInfo.startedAt ? new Date(attemptInfo.startedAt).toLocaleString() : "N/A"}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Completed: {attemptInfo.completedAt ? new Date(attemptInfo.completedAt).toLocaleString() : "Not completed"}
+          </Typography>
+          {attemptInfo.score !== null && attemptInfo.score !== undefined && (
+            <Typography variant="body2" color="primary" className="font-semibold">
+              Current Score: {attemptInfo.score}
+            </Typography>
+          )}
+        </Box>
+      </Box>
+      
+      <div className="details-container space-y-4">
+        {details.length > 0 ? (
+          <>
+            {details.map((item, index) => (
               <Card
                 key={item.id}
                 className="mb-4 shadow-md rounded-lg hover:shadow-lg transition-shadow duration-300"
@@ -66,12 +168,11 @@ function SubmissionDetails() {
                     component="div"
                     className="font-semibold"
                   >
-                    {item.question.question}
+                    Question {index + 1}: {item.question.question}
                   </Typography>
                   <Typography
                     variant="body1"
-                    color="text.secondary"
-                    className="mt-2"
+                    className="mt-2 p-3 bg-gray-50 rounded-md"
                   >
                     <strong>Answer:</strong>{" "}
                     {item.answer || "No answer provided"}
@@ -79,20 +180,26 @@ function SubmissionDetails() {
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    className="mt-1"
+                    className="mt-1 block"
                   >
                     <strong>Submitted At:</strong>{" "}
                     {new Date(item.submittedAt).toLocaleString()}
                   </Typography>
                 </CardContent>
               </Card>
-            ))
-          ) : (
-            <Typography variant="body1" color="text.secondary">
-              No details found for this submission.
-            </Typography>
-          )}
-          <div className="mt-6">
+            ))}
+          </>
+        ) : (
+          <Alert severity="info" className="mb-4">
+            No answers submitted yet for this test attempt.
+          </Alert>
+        )}
+        
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <Typography variant="h6" className="mb-2">
+            Score Submission
+          </Typography>
+          <div className="flex flex-col md:flex-row gap-4 items-start">
             <TextField
               label="Score"
               variant="outlined"
@@ -102,16 +209,20 @@ function SubmissionDetails() {
               type="number"
               inputProps={{ min: 0 }}
               size="small"
+              disabled={submitting}
             />
-            <div
-              className="bg-blue-600 w-[200px] cursor-pointer p-2 text-white mt-2 rounded-lg"
+            <Button
+              variant="contained"
+              color="primary"
               onClick={scoreTest}
+              disabled={submitting || !score}
+              className="ml-2"
             >
-              Submit Score
-            </div>
+              {submitting ? "Submitting..." : "Submit Score"}
+            </Button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

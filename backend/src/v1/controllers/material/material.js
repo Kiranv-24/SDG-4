@@ -129,6 +129,30 @@ const materialController = {
   async getMaterialByClass(req, res, next) {
     try {
       const { subjectName } = req.query;
+      
+      if (!subjectName) {
+        return res.json({
+          success: false,
+          message: "Subject name is required",
+        });
+      }
+
+      if (!req.user) {
+        return res.json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      if (!req.user.classname) {
+        return res.json({
+          success: false,
+          message: "User does not have a classname assigned",
+        });
+      }
+
+      console.log("User:", req.user.id, "classname:", req.user.classname, "subjectName:", subjectName);
+      
       const findclassId = await prisma.class.findFirst({
         where: {
           name: req.user.classname,
@@ -136,69 +160,159 @@ const materialController = {
       });
 
       console.log(findclassId, "class ID");
-      let materials = [];
-
-      if (findclassId) {
-        // Modify the query to filter by subject
-        materials = await prisma.material.findMany({
-          where: {
-            classId: findclassId.id,
-            subject: {
-              name: subjectName, // Filter by subject name
-            },
-          },
-          include: {
-            subject: true,
-            owner: true,
-          },
+      
+      if (!findclassId) {
+        // If class not found, create it for this user
+        const newClass = await prisma.class.create({
+          data: {
+            name: req.user.classname,
+          }
         });
-        console.log(materials);
+        
+        console.log("Created new class:", newClass);
+        
+        return res.json({
+          success: false,
+          message: `Class '${req.user.classname}' was not found in the database. It has been created, but has no subjects yet.`,
+        });
+      }
+      
+      // Get the subject ID first
+      const subject = await prisma.subject.findFirst({
+        where: {
+          name: subjectName,
+          classId: findclassId.id,
+        },
+      });
+
+      if (!subject) {
+        return res.json({
+          success: false,
+          message: `Subject '${subjectName}' not found for class '${req.user.classname}'`,
+        });
       }
 
+      // Then query materials using the subject ID
+      const materials = await prisma.material.findMany({
+        where: {
+          classId: findclassId.id,
+          subjectId: subject.id,
+        },
+        include: {
+          subject: true,
+          owner: true,
+        },
+      });
+      
+      console.log("Materials found:", materials.length);
+
       if (materials && materials.length > 0) {
-        res.json({
+        return res.json({
           success: true,
           message: materials,
         });
       } else {
-        res.json({
+        return res.json({
           success: false,
-          message: "No materials found for the given class and subject.",
+          message: `No materials found for subject '${subjectName}' in class '${req.user.classname}'`,
         });
       }
     } catch (err) {
-      console.log(err);
-      res.json({
+      console.error("Error in getMaterialByClass:", err);
+      return res.status(500).json({
         success: false,
-        message: err,
+        message: err.message || "An error occurred",
+        error: err.toString()
       });
     }
   },
   async getallSubjects(req, res, next) {
     try {
+      if (!req.user) {
+        return res.json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
       const classname = req.user.classname;
-      const findclassId = await prisma.class.findFirst({
+
+      if (!classname) {
+        return res.json({
+          success: false,
+          message: "User does not have a classname assigned",
+        });
+      }
+
+      console.log("Looking for subjects for class:", classname);
+
+      // Find the class ID for the user's class
+      let findclassId = await prisma.class.findFirst({
         where: {
           name: classname,
         },
       });
-      let subjects = [];
-      if (findclassId) {
-        subjects = await prisma.subject.findMany({
-          where: {
-            classId: findclassId.id,
+
+      // If class doesn't exist, create it
+      if (!findclassId) {
+        console.log("Class not found, creating:", classname);
+        findclassId = await prisma.class.create({
+          data: {
+            name: classname,
           },
         });
-        res.json({
+        
+        // Return with a message but empty subjects array since it's a new class
+        return res.json({
           success: true,
-          message: subjects,
+          message: [],
+          info: `Class '${classname}' was created as it didn't exist before`
         });
       }
-    } catch (err) {
-      console.log(err);
-      res.json({
+
+      // Find subjects for the class
+      const subjects = await prisma.subject.findMany({
+        where: {
+          classId: findclassId.id,
+        },
+      });
+
+      console.log(`Found ${subjects.length} subjects for class ${classname}`);
+
+      // If no subjects found, create default subjects for class 11
+      if (subjects.length === 0 && classname === "11") {
+        console.log("Creating default subjects for class 11");
+        
+        const defaultSubjects = ["Physics", "Chemistry", "Mathematics", "Biology", "English"];
+        const createdSubjects = [];
+        
+        for (const subjectName of defaultSubjects) {
+          const subject = await prisma.subject.create({
+            data: {
+              name: subjectName,
+              classId: findclassId.id,
+            },
+          });
+          createdSubjects.push(subject);
+        }
+        
+        return res.json({
+          success: true,
+          message: createdSubjects,
+          info: "Default subjects were created for Class 11"
+        });
+      }
+
+      return res.json({
         success: true,
-        message: err,
+        message: subjects,
+      });
+    } catch (err) {
+      console.error("Error in getallSubjects:", err);
+      return res.status(500).json({
+        success: false,
+        message: err.message || "An error occurred",
+        error: err.toString()
       });
     }
   },

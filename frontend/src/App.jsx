@@ -37,6 +37,9 @@ import IndividualQuestions from "./Components/student/IndividualQuestions";
 import IndividualTest from "./Components/mentor/IndividualTest";
 import SubmissionDetails from "./Components/mentor/SubmissionDetails";
 import MySubmissions from "./Components/student/MySubmissions";
+import DigitalLibrary from "./Components/mentor/DigitalLibrary";
+import BookChat from "./Components/student/BookChat";
+
 function App() {
   function isJWTValid() {
     const token = localStorage.getItem("token");
@@ -105,6 +108,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
             <Route path="confirm-booking/:id" element={<ConfirmBooking />} />
+            <Route path="book-chat/:bookId" element={<BookChat />} />
           </Route>
           <Route path="/mentor" element={<Dashboard />}>
             <Route path="my-Test" element={<Mentortest />} />
@@ -116,6 +120,7 @@ function App() {
             <Route path="material" element={<Material />} />
             <Route path="material/:id" element={<MaterialSubject />} />
             <Route path="classroom" element={<Classroom />} />
+            <Route path="digital-library" element={<DigitalLibrary />} />
           </Route>
         </Routes>
       </BrowserRouter>

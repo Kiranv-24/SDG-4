@@ -28,19 +28,22 @@ const getAllUsers = async () => {
   const { data } = await AuthAPI().get("/user/get-all-users");
   return data;
 };
-const sendMessage =async (message,receiverId,conversationId)=>{
-  const {data } =await AuthAPI().post("/user/create-conversation",{
-    message,receiverId,conversationId
-  })
-}
+const sendMessage = async (message, receiverId, conversationId = null) => {
+  const { data } = await AuthAPI().post("/user/create-conversation", {
+    message,
+    receiverId,
+    conversationId
+  });
+  return data;
+};
 const getMySubmissions = async ()=>{
   const {data}= await AuthAPI().get("/user/get-user-sub")
   return data;
 }
-const getUserById =async (userId)=>{
-  const {data } =await AuthAPI().get("/user/getuserbyid/userId")
-  return data
-}
+const getUserById = async (userId) => {
+  const { data } = await AuthAPI().get(`/user/getuserbyid/${userId}`);
+  return data;
+};
 const getMyConvos =async ()=>{
   const {data } =await AuthAPI().get("/user/all-convo");
   return data
@@ -82,7 +85,7 @@ useQuery({
     queryFn: () => getMyConvos(),
     select: (data) => {
       const res = data.message;
-      console.log("Res:", res);
+      console.log("Conversations loaded:", res);
       return res;
     },
   });

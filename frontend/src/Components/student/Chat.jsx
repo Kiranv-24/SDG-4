@@ -42,42 +42,51 @@ const Chat = () => {
   const [selected, setSelected] = useState(null);
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef(null);
- const BACKEND_URL =` ${import.meta.env.VITE_BASE_URL}/`
+  const socketRef = useRef(null);
+  const BACKEND_URL = `${import.meta.env.VITE_BASE_URL}`;
+
   useEffect(() => {
     if (!mydetails?.id) return;
 
-    const socket = io(BACKEND_URL, {
+    // Connect to socket server
+    socketRef.current = io(BACKEND_URL, {
       query: {
         userId: mydetails?.id,
       },
     });
 
-    socket.on("new_message", (mess) => {
-      console.log(mess, "you got a new message");
-      setSelectedConvo((prev) => ({
-        ...prev,
-        messages: [...(prev.messages || []), { message: mess }],
-      }));
+    // Handle incoming messages
+    socketRef.current.on("new_message", (mess) => {
+      console.log("New message received:", mess);
+      setSelectedConvo((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          messages: [...(prev.messages || []), { 
+            message: mess, 
+            senderId: prev?.participants?.[0]?.id || "",
+            timestamp: Date.now()
+          }],
+        };
+      });
     });
 
-    socket.on("user_connected", () => {
-      console.log("socket connected..");
-    });
-
-    socket.on("getOnlineUsers", (users) => {
+    socketRef.current.on("getOnlineUsers", (users) => {
       setOnlineUser(users);
-      console.log(users, "online users...");
+      console.log("Online users:", users);
     });
 
-    socket.emit("get_online_users");
+    // Request online users list when connected
+    socketRef.current.emit("get_online_users");
 
+    // Cleanup on unmount
     return () => {
-      socket.off("new_message");
-      socket.off("user_connected");
-      socket.off("getOnlineUsers");
-      socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
-  }, [mydetails?.id]);
+  }, [mydetails?.id, BACKEND_URL]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -85,49 +94,82 @@ const Chat = () => {
     }
   }, [selectedConvo?.messages]);
 
-  const sendmessageto = async () => {
-    if (!message) {
+  const sendMessageHandler = async () => {
+    if (!message.trim()) {
       toast.error("Message cannot be empty!");
       return;
     }
 
+    if (!selectedConvo || !mydetails?.id) {
+      toast.error("Cannot send message right now");
+      return;
+    }
+
+    // Check if participants array exists and has at least one element
+    if (!selectedConvo.participants || selectedConvo.participants.length === 0) {
+      toast.error("Invalid conversation recipient");
+      return;
+    }
+
     try {
+      // Optimistically update the UI
+      const newMessage = {
+        message: message,
+        senderId: mydetails?.id,
+        timestamp: Date.now()
+      };
+      
       setSelectedConvo((prev) => ({
         ...prev,
         messages: [
           ...(prev.messages || []),
-          { message: message, senderId: mydetails?.id, timestamp: Date.now() },
+          newMessage
         ],
       }));
-      const data = await sendMessage(
+      
+      // Clear input
+      setMessage("");
+      
+      // Send to server
+      await sendMessage(
         message,
         selectedConvo.participants[0].id,
         selectedConvo.id
       );
-      console.log(data, "data");
-      toast.success("Chat Successful");
-      setMessage("");
+      
     } catch (err) {
-      console.log(err);
+      console.error("Error sending message:", err);
       toast.error("Failed to send message");
     }
   };
 
-  const createConveration = async () => {
+  const createConversation = async () => {
+    if (!wantTo?.id || !mydetails?.id) {
+      toast.error("Cannot create conversation");
+      return;
+    }
+    
     try {
-      const data = await sendMessage("hi ", wantTo?.id, selectedConvo.id);
+      await sendMessage("Hi, let's chat!", wantTo?.id);
       setWantto(null);
       setOpen(false);
       refetch();
       toast.success("Chat started successfully");
     } catch (err) {
+      console.error("Error creating conversation:", err);
       toast.error("Failed to start conversation");
     }
   };
 
-  const deleteConveration = async () => {};
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessageHandler();
+    }
+  };
+
   if (usersLoading) return <div>Loading users...</div>;
-  if (conversationsLoading) return "Loading conversations...";
+  if (conversationsLoading) return <div>Loading conversations...</div>;
 
   return (
     <div className="flex h-screen">
@@ -136,7 +178,7 @@ const Chat = () => {
           <DropdownMenuTrigger className="bg-stone-500 hover:bg-stone-600 text-white py-2 px-4 rounded-lg w-full">
             Create Chat
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white ">
+          <DropdownMenuContent className="bg-white">
             <DropdownMenuLabel className="font-bold">
               Select User
             </DropdownMenuLabel>
@@ -148,9 +190,12 @@ const Chat = () => {
                   setOpen(true);
                   setWantto(x);
                 }}
-                className="cursor-pointer hover:bg-gray-200 hover:text-white px-4 py-2"
+                className="cursor-pointer hover:bg-gray-200 px-4 py-2"
               >
                 {x.name}
+                {onlineUsers.includes(x.id) && (
+                  <span className="ml-2 h-2 w-2 rounded-full bg-green-500" title="Online"></span>
+                )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -159,56 +204,75 @@ const Chat = () => {
           {AllconvoData?.map((convo) => (
             <div
               key={convo.id}
-              className={`cursor-pointer py-2 px-3 bg-white rounded-lg mb-2 hover:bg-green-200  ${
-                selectedConvo.id === convo.id ? "bg-lime-300" : ""
+              className={`cursor-pointer py-2 px-3 bg-white rounded-lg mb-2 hover:bg-green-200 ${
+                selectedConvo?.id === convo.id ? "bg-lime-300" : ""
               }`}
               onClick={() => setSelectedConvo(convo)}
             >
-              <div className="flex   gap-2  p-2 rounded-md">
+              <div className="flex gap-2 p-2 rounded-md">
                 <div className="flex">
                   <Avatar />
                 </div>
                 <div className="flex flex-col">
-                  {convo.participants[0].name}{" "}
-                  <div>
-                    {" "}
-                    {convo.messages[convo.messages.length - 1].message}
-                  </div>{" "}
+                  <div className="font-medium">
+                    {convo.participants && convo.participants[0] 
+                      ? convo.participants[0].name 
+                      : "Unknown User"}
+                  </div>
+                  {convo.messages && convo.messages.length > 0 && (
+                    <div className="text-sm text-gray-500 truncate max-w-[180px]">
+                      {convo.messages[convo.messages.length - 1].message}
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              <div>
-                <div></div>
+                {convo.participants && convo.participants[0] && onlineUsers.includes(convo.participants[0].id) && (
+                  <span className="h-2 w-2 rounded-full bg-green-500 ml-auto" title="Online"></span>
+                )}
               </div>
             </div>
           ))}
+          {AllconvoData?.length === 0 && (
+            <div className="text-center text-gray-500 mt-4">
+              No conversations yet. Start a new chat!
+            </div>
+          )}
         </div>
       </div>
 
       {selectedConvo ? (
         <div className="bg-gray-100 w-3/4 flex flex-col">
           <div className="bg-stone-500 text-white p-4 flex items-center gap-2">
-            <BiUserCircle className="text-2xl" />{" "}
-            {selectedConvo ? ` ${selectedConvo.participants[0].name}  ` : ""}
+            <BiUserCircle className="text-2xl" />
+            <span>
+              {selectedConvo.participants && selectedConvo.participants[0] 
+                ? selectedConvo.participants[0].name 
+                : "Unknown User"}
+            </span>
+            {selectedConvo.participants && selectedConvo.participants[0] && 
+              onlineUsers.includes(selectedConvo.participants[0].id) && (
+                <span className="ml-2 text-xs bg-green-500 px-2 py-1 rounded">Online</span>
+            )}
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">
-            {selectedConvo?.messages?.map((msg) => (
+            {!selectedConvo?.messages?.length && (
+              <div className="text-center text-gray-500 mt-4">
+                No messages yet. Start the conversation!
+              </div>
+            )}
+            {selectedConvo?.messages?.map((msg, index) => (
               <div
-                key={msg.id}
-                className={`max-w-md p-2 rounded-lg mb-2 text-white ${
+                key={index}
+                className={`max-w-md p-3 rounded-lg mb-2 text-white ${
                   mydetails.id === msg.senderId
-                    ? "bg-blue-500 flex ml-[400px]"
+                    ? "bg-blue-500 ml-auto"
                     : "bg-green-500"
                 }`}
               >
-                <div className="flex justify-between w-full">
-                  <div>{msg.message}</div>{" "}
-                  <div className="text-xs mt-6">
-                    {new Date(msg?.timestamp).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
+                <div className="flex flex-col">
+                  <div>{msg.message}</div>
+                  <div className="text-xs text-right mt-1 text-white/80">
+                    {new Date(msg?.timestamp || Date.now()).toLocaleTimeString("en-US", {
                       hour: "numeric",
                       minute: "numeric",
                       hour12: true,
@@ -220,37 +284,40 @@ const Chat = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 bg-white shadow-lg flex">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="flex-1 border rounded-lg p-2 mr-2 focus:outline-none"
-              placeholder="Type a message..."
-            />
-            <button
-              onClick={sendmessageto}
-              className="bg-blue-600 text-white py-2 px-4 rounded-lg"
-            >
-              <Send />
-            </button>
+          <div className="p-4 bg-white shadow-lg">
+            <div className="flex">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="flex-1 border rounded-lg p-2 mr-2 focus:outline-none"
+                placeholder="Type a message..."
+              />
+              <button
+                onClick={sendMessageHandler}
+                disabled={!message.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center"
+              >
+                <Send />
+              </button>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="text-center font-semibold text-3xl w-1/2 flex h-screen justify-center items-center ml-40">
-          {" "}
-          Click on the User You want to Chat{" "}
+        <div className="text-center font-semibold text-3xl w-3/4 flex h-screen justify-center items-center">
+          Select a conversation or start a new chat
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={() => setOpen(!open)}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Start a chat with {wantTo?.name}</DialogTitle>
             <DialogDescription>
               <button
-                onClick={() => createConveration()}
-                className="bg-blue-600 text-white py-2 px-4 rounded-lg"
+                onClick={createConversation}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4"
               >
                 Start Chat
               </button>

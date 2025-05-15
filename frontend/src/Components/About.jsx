@@ -132,7 +132,7 @@ function About() {
         </nav>
       </section>
 
-      <div className="flex flex-col justify-center items-center p-40 ">
+      {/* <div className="flex flex-col justify-center items-center p-40 ">
         <h1 className="text-6xl font-bold bg-green-300 p-4 rounded-xl">
           We are the people who
         </h1>
@@ -179,7 +179,7 @@ function About() {
             the expiration of sql db on render's free tier )
           </p>
         </div>
-      </div>
+      </div> */}
       <div className="flex flex-wrap justify-center">
         {teamMembers.map((member, index) => (
           <TeamMember key={index} {...member} />

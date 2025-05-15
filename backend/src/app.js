@@ -7,7 +7,7 @@ import morgan from "morgan";
 import path from "path";
 
 import favicon from "serve-favicon";
-import  { Server }from 'socket.io';
+import { Server } from 'socket.io';
 import "./v1/config/env.config";
 
 import { authRoutes, userRoute } from "./v1/routes";
@@ -17,6 +17,9 @@ import OpenAI from "openai";
 
 import { PrismaClient } from "@prisma/client";
 import { app, server } from "./socket";
+import bookRoutes from './v1/routes/books.js';
+import chatRoutes from './v1/routes/chat.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // This is also the default, can be omitted
@@ -44,7 +47,9 @@ async function sendMessage(senderId, receiverId, message) {
 }
 const corsOptions = {
   origin: ["http://localhost:3000", "https://green-iq-deployed.vercel.app"],
-  credentials: true, //access-control-allow-credentials:true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionSuccessStatus: 200,
 };
 
@@ -73,13 +78,6 @@ const apiVersion = "v1";
 app.use(`/${apiVersion}/auth`, authRoutes);
 app.use(`/${apiVersion}/user`, userRoute);
 app.use(`/${apiVersion}/video`, videoRoutes);
-
-const {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-} = require("@google/generative-ai");
-
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -117,27 +115,9 @@ app.post(`/find-complexity`, async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Add new routes
+app.use('/api/books', bookRoutes);
+app.use('/api/chat', chatRoutes);
 
 // 404 Handler
 app.use((req, res, next) => {

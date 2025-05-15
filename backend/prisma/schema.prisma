@@ -39,41 +39,43 @@ model Class {
 }
 
 model Subject {
-  id       String     @id @default(auto()) @map("_id") @db.ObjectId
-  name     String
-  class    Class      @relation(fields: [classId], references: [id])
-  classId  String
-  tests    Test[]
-  Material Material[]
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  class     Class      @relation(fields: [classId], references: [id])
+  classId   String
+  tests     Test[]
+  Material  Material[]
 }
 
 model Material {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   String
-  owner     User    @relation(fields: [userId], references: [id])
-  subject   Subject @relation(fields: [subjectId], references: [id])
+  userId    String
   subjectId String
   classId   String
-  userId    String
+  owner     User    @relation(fields: [userId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
 }
 
 model User {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  email           String        @unique
-  classname       String
-  password        String
-  phonenumber     String        @unique
-  role            String        @default("student")
-  courses         Course[]
-  tests           Test[]
-  hostedMeetings  Meeting[]     @relation("HostedMeetings")
+  id                 String              @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  email              String              @unique
+  classname          String
+  password           String
+  phonenumber        String              @unique
+  role               String              @default("student")
+  courses            Course[]
+  tests              Test[]
+  hostedMeetings     Meeting[]           @relation("HostedMeetings")
   meetingParticipant MeetingParticipant[]
-  Material        Material[]
-  Question        Question[]
-  Answer          Answer[]
-  TestAttempt     TestAttempt[]
+  Material           Material[]
+  Question           Question[]
+  Answer             Answer[]
+  TestAttempt        TestAttempt[]
+  Book               Book[]
+  ChatMessages       ChatMessage[]
 }
 
 model MeetingParticipant {
@@ -113,31 +115,31 @@ model Question {
   text      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  answers   Answer[]
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  answers   Answer[]
 }
 
 model Answer {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   text       String
   createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  updatedAt  DateTime  @default(now())
+  userId     String
+  questionId String?
   owner      User      @relation(fields: [userId], references: [id])
   question   Question? @relation(fields: [questionId], references: [id])
-  questionId String?
-  userId     String
 }
 
 model Course {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  owner       User   @relation(fields: [userId], references: [id])
   userId      String
   description String
   img         String
-  class       Class  @relation(fields: [classId], references: [id])
   classId     String
+  owner       User   @relation(fields: [userId], references: [id])
+  class       Class  @relation(fields: [classId], references: [id])
 }
 
 model Test {
@@ -148,21 +150,19 @@ model Test {
   assetUrl    String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  classId     String
+  subjectId   String
   owner       User     @relation(fields: [mentorId], references: [id])
   class       Class    @relation(fields: [classId], references: [id])
-  classId     String
   subject     Subject  @relation(fields: [subjectId], references: [id])
-  subjectId   String
-
-  attempts  TestAttempt[]
-  questions TestQuestion[]
+  attempts    TestAttempt[]
+  questions   TestQuestion[]
 }
 
 model TestQuestion {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  testId   String
-  question String
-
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  testId      String
+  question    String
   test        Test             @relation(fields: [testId], references: [id])
   submissions TestSubmission[]
 }
@@ -173,9 +173,8 @@ model TestSubmission {
   questionId  String
   answer      String
   submittedAt DateTime @default(now())
-
-  attempt  TestAttempt  @relation(fields: [attemptId], references: [id])
-  question TestQuestion @relation(fields: [questionId], references: [id])
+  attempt     TestAttempt  @relation(fields: [attemptId], references: [id])
+  question    TestQuestion @relation(fields: [questionId], references: [id])
 }
 
 model TestAttempt {
@@ -184,8 +183,33 @@ model TestAttempt {
   testId      String
   startedAt   DateTime @default(now())
   completedAt DateTime?
-
-  user   User  @relation(fields: [userId], references: [id])
-  test   Test  @relation(fields: [testId], references: [id])
+  score       Int?
+  user        User  @relation(fields: [userId], references: [id])
+  test        Test  @relation(fields: [testId], references: [id])
   submissions TestSubmission[]
+}
+
+model Book {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  fileName    String
+  filePath    String
+  pageCount   Int
+  uploadedBy  String
+  cloudinaryPublicId String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [uploadedBy], references: [id])
+  chatMessages ChatMessage[]
+}
+
+model ChatMessage {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookId  String
+  userId  String
+  message String
+  response String
+  book    Book     @relation(fields: [bookId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
 }

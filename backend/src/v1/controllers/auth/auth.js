@@ -31,9 +31,7 @@ const loginController = {
 
       // generating jwt tokens for the logged in user
 
-      const accessToken = jwt.sign({ id: user.id }, process.env.USER_ACCESS_SECRET, {
-        expiresIn: '24h'
-      });
+      const accessToken = jwt.sign(user.id, process.env.USER_ACCESS_SECRET);
 
       res.cookie("accessToken", accessToken, {
         maxAge: ms("30m"),
