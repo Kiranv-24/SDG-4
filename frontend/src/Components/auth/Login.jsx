@@ -19,8 +19,10 @@ import {
 } from "react-icons/ai";
 import { useNavigate } from "react-router";
 import Loading from "../Loading";
+import { useTranslation } from "react-i18next";
 
 function Login() {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [apiError, setApiError] = useState(null);
@@ -79,19 +81,19 @@ function Login() {
       <div className=" mx-auto ml-auto mt-auto mb-auto ">
         <div className="flex  mx-auto  flex-col gap-4 h-1/2">
           <h1 className="text-center font-bold text-3xl m-5 text-green-600 border-red-500">
-            Welcome to GreenIQ
+            {t("login_welcome")}
           </h1>
       
         
-          <h1 className="font-bold text-3xl font-mono">Login</h1>
-          <div>New User ?  <a href="/register" className="text-blue-700 font-bold">Create new Account</a></div>
+          <h1 className="font-bold text-3xl font-mono">{t("login_title")}</h1>
+          <div>{t("login_new_user")} <a href="/register" className="text-blue-700 font-bold">{t("login_create_account")}</a></div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-8  my-10">
               <div className="">
                 <TextField
                   required
                   id="outlined-basic"
-                  label="Email"
+                  label={t("login_email")}
                   variant="outlined"
                   className="w-full rounded-lg text-white"
                   {...register("email")}
@@ -101,7 +103,7 @@ function Login() {
                 <TextField
                   required
                   id="outlined-basic"
-                  label="Password"
+                  label={t("login_password")}
                   variant="outlined"
                   className="w-full rounded-lg text-white"
                   type={showPassword ? "text" : "password"}
@@ -126,13 +128,13 @@ function Login() {
                {
               isSubmitting ? (
             <div className="bg-blue-500  text-white flex items-center h-16">
-  <span className="text-center ml-2">Verifying Credentials ... </span>
+  <span className="text-center ml-2">{t("login_verifying")}</span>
   <Loading />
 </div>
 
               ) : (
-                 <button  className="bg-blue-500 p-3 rounded-xl w-full text-white">
-                Register
+                 <button className="bg-blue-500 p-3 rounded-xl w-full text-white">
+                {t("login_button")}
               </button>
               )
              }

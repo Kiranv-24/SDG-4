@@ -6,38 +6,39 @@ import Searchbox from "../SearchBox";
 import { Bar } from "react-chartjs-2";
 import { Line } from "react-chartjs-2";
 import { Doughnut } from "react-chartjs-2";
+import { useTranslation } from "react-i18next";
 
 import { Chart as chartjs } from "chart.js/auto";
 import LeadersList from "./LeaderList";
 
 const navigationLink = [
   {
-    name: "Meetings",
+    name: "sidebar_personal_meetings",
     path: "/mentor/meetings",
     icons: Pencil,
   },
   {
-    name: "Test",
+    name: "sidebar_tests",
     path: "/mentor/my-test",
     icons: Pencil,
   },
   {
-    name: "Discussion",
+    name: "sidebar_discuss",
     path: "user/discuss",
     icons: Pencil,
   },
   {
-    name: "Your Course",
+    name: "dashboard_created_course",
     path: "/mentor/material",
     icons: Pencil,
   },
   {
-    name: "Materials",
+    name: "dashboard_materials",
     path: "/mentor/material",
     icons: Pencil,
   },
   {
-    name: "News Feed",
+    name: "sidebar_newsfeed",
     path: "/mentor/meetings",
     icons: Pencil,
   },
@@ -165,11 +166,13 @@ const month = [
 ];
 
 const Leaderboard = () => {
+  const { t } = useTranslation();
+  
   const [chartData, setChartData] = useState({
     labels: classReport.map((data) => data.class),
     datasets: [
       {
-        label: "Class Performance",
+        label: t("chart_class_performance"),
         data: classReport.map((data) => data.performance),
         backgroundColor: classReport.map((data) => data.color),
 
@@ -178,10 +181,10 @@ const Leaderboard = () => {
     ],
   });
   const [chartAnalysis, setChartAnalysis] = useState({
-    labels: month,
+    labels: month.map(m => t(`months_${m.toLowerCase()}`)),
     datasets: [
       {
-        label: "Class 1",
+        label: t("chart_class"),
         data: class1.map((data) => data.performance),
         borderColour: "red",
         suggestedMin: 0,
@@ -199,22 +202,10 @@ const Leaderboard = () => {
         <div className="w-2/6 h-full bg-slate-100 rounded-lg shadow-md p-5">
           <Line data={chartAnalysis} options={options} />
         </div>
-
-        <div className="w-2/6 flex-row-center flex-wrap ">
-          {navigationLink.map((obj, id) => (
-            <Link
-              to={obj.path}
-              className="bg-green-200 h-[100px] gap-2 rounded-md w-[100px] font-comf text-sm flex flex-col justify-center items-center m-2"
-            >
-              <button>
-                <img src={obj.icons} className="w-[50px]" />
-              </button>
-              {obj.name}
-            </Link>
-          ))}
+        <div className="w-2/6 h-full bg-slate-100 rounded-lg shadow-md p-5">
+          <LeadersList />
         </div>
       </div>
-      <LeadersList />
     </div>
   );
 };

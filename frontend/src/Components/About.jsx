@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ankush from "../assets/ankush.jpeg";
 import anuvab from "../assets/anuvab.png";
 import bristi from "../assets/bristi.png";
@@ -10,55 +11,52 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+
 const teamMembers = [
   {
     name: "Ankush Banerjee",
-    role: "Full Stack Developer",
-    responsibilities:
-      "Responsible for implementing the overall architecture and the system end to end",
+    roleKey: "full_stack",
+    responsibilityKey: "architecture",
     image: ankush,
     linkedinLink: "https://www.linkedin.com/in/ankush2003/",
     gihubLink: "https://github.com/Ankush109",
   },
   {
     name: "Anuvab Chakravarty",
-    role: "Design and Ideation",
-    responsibilities:
-      "Responsible for improvising ideas and features for improving the overall system",
+    roleKey: "design",
+    responsibilityKey: "ideation",
     image: anuvab,
     linkedinLink: "https://www.linkedin.com/in/anuvab-chakravarty-001b39233/",
     githubLink: "https://github.com/Vanaub22",
   },
   {
     name: "Bristi Maity",
-    role: "ML",
-    responsibilities: "Responsible for building the machine learning prospects",
+    roleKey: "ml",
+    responsibilityKey: "ml",
     image: bristi,
     linkedinLink: "https://www.linkedin.com/in/bristi-maity-6260a5244/",
     githubLink: "https://github.com/bristi03",
   },
   {
     name: "Souvik Sen",
-    role: "Full Stack Developer",
-    responsibilities:
-      "Responsible for implementing the overall architecture and the system end to end",
+    roleKey: "full_stack",
+    responsibilityKey: "architecture",
     image: souvik,
     linkedinLink: "https://www.linkedin.com/in/souvik001/",
     githubLink: "https://github.com/Souvik3469",
   },
   {
     name: "Kaushan Dutta",
-    role: "Frontend Developer",
-    responsibilities:
-      "Responsible for designing the entire frontend UI and making enhancing the frontend ",
+    roleKey: "frontend",
+    responsibilityKey: "frontend",
     image: kaushan,
     linkedinLink: "https://www.linkedin.com/in/kaushan-dutta-bb68b021a/",
     githubLink: "https://github.com/Kaushan-Dutta",
   },
   {
     name: "Debanjan Konar",
-    role: "AI/ML",
-    responsibilities: "Responsible for AI integrations in our platform ",
+    roleKey: "ai_ml",
+    responsibilityKey: "ai",
     image: debanjan,
     linkedinLink: "https://www.linkedin.com/in/debanjan-konar/",
     githubLink: "https://github.com/Uni-Bo",
@@ -67,12 +65,14 @@ const teamMembers = [
 
 function TeamMember({
   name,
-  role,
-  responsibilities,
+  roleKey,
+  responsibilityKey,
   image,
   linkedinLink,
   gihubLink,
 }) {
+  const { t } = useTranslation();
+  
   return (
     <div className="bg-white p-6 rounded-xl shadow-md m-4 max-w-xs">
       <img
@@ -82,10 +82,12 @@ function TeamMember({
       />
       <div className="text-center">
         <h1 className="text-xl font-bold mb-2">{name}</h1>
-        <h2 className="text-sm text-gray-500 mb-2 font-bold">{role}</h2>
-        {responsibilities && (
-          <p className="text-sm text-gray-700">{responsibilities}</p>
-        )}
+        <h2 className="text-sm text-gray-500 mb-2 font-bold">
+          {t(`about_roles.${roleKey}`)}
+        </h2>
+        <p className="text-sm text-gray-700">
+          {t(`about_responsibilities.${responsibilityKey}`)}
+        </p>
         <div className="flex flex-row justify-center gap-6 my-3 ">
           <Link to={linkedinLink}>
             <LinkedInIcon />
@@ -100,6 +102,8 @@ function TeamMember({
 }
 
 function About() {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-green-100 min-h-screen">
       <section className="fixed inset-x-0 mx-auto w-full custom-navbar-width z-10 py-5 ">
@@ -111,10 +115,8 @@ function About() {
           </div>
 
           <div className="mx-2 h-20 list-none space-x-10 flex-row-center text-lg text-primary font-comf">
-            {/* Static Links */}
-            <a href="/">Home</a>
-            <a href="/user/book-meeting">Dashboard</a>
-            {/* Add more static links as needed */}
+            <Link to="/">{t("nav_home")}</Link>
+            <Link to="/user/book-meeting">{t("nav_dashboard")}</Link>
           </div>
         </nav>
 
@@ -132,35 +134,32 @@ function About() {
         </nav>
       </section>
 
-      {/* <div className="flex flex-col justify-center items-center p-40 ">
+      <div className="flex flex-col justify-center items-center p-40 ">
         <h1 className="text-6xl font-bold bg-green-300 p-4 rounded-xl">
-          We are the people who
+          {t("about_title")}
         </h1>
         <h1 className="text-2xl font-semibold my-3 text-center">
-          Developed GreenIQ
+          {t("about_subtitle")}
         </h1>
         <img
-          class=" sm:block w-56 mx-6 object-cover rounded-full mb-5"
+          className="sm:block w-56 mx-6 object-cover rounded-full mb-5"
           src="https://i0.wp.com/opportunitycell.com/wp-content/uploads/2022/03/SIH2.png?fit=327%2C345&ssl=1"
+          alt="SIH Logo"
         />
-        <div className="flex items-center mx-auto  ">
+        <div className="flex items-center mx-auto">
           <p className="text-md text-center text-green-900 font-semibold mb-8">
-            GreenIQ represents a transformative solution to the pressing
-            challenges faced by rural education in Kerala. Through its
-            innovative features and holistic approach, GreenIQ has the potential
-            to significantly enhance the quality of education in rural areas,
-            empowering students with knowledge and skills for a brighter future.
+            {t("about_description")}
           </p>
         </div>
-        <h1 className="text-3xl font-bold mb-5">Team - Cyber Elites</h1>
+        <h1 className="text-3xl font-bold mb-5">{t("about_team_title")}</h1>
         <p className="text-xl text-center">
-          PS: 1326 || Ideate and Implement Education in Rural Areas ||
+          {t("about_project_info")}
           <Link
             className="mx-2"
             to="https://github.com/ankush109/GreenIQ-ORIGIN_SIH-2023"
           >
             <GitHubIcon />
-          </Link>{" "}
+          </Link>
           ||
           <Link
             className="mx-2"
@@ -175,18 +174,17 @@ function About() {
         </p>
         <div>
           <p className="bg-green-300 p-2 rounded-lg font-semibold m-3">
-            ( Database migrated to Mongodb from Postgresql on 26/03/2024 due to
-            the expiration of sql db on render's free tier )
+            {t("about_db_notice")}
           </p>
         </div>
-      </div> */}
+      </div>
       <div className="flex flex-wrap justify-center">
         {teamMembers.map((member, index) => (
           <TeamMember key={index} {...member} />
         ))}
       </div>
-      <p className=" text-center font-bold mx-auto p-10">
-        Maintained By Ankush Banerjee ❤️
+      <p className="text-center font-bold mx-auto p-10">
+        {t("about_maintained_by")}
       </p>
     </div>
   );

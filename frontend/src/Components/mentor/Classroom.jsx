@@ -6,43 +6,44 @@ import Searchbox from '../SearchBox';
 import {Bar} from "react-chartjs-2"
 import { Line } from 'react-chartjs-2';
 import { Doughnut } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 
 import {Chart as chartjs} from 'chart.js/auto';
 
 
 const navigationLink=[
     {
-        name:'Check out your meetings',
+        name:'dashboard_check_meetings',
         path:'/mentor/meetings',
         icons:Pencil,
     },
     {
-        name:'View your created test',
+        name:'dashboard_view_test',
         path:'/mentor/my-test',
         icons:Pencil,
     },
     {
-        name:'Discuss in portal',
+        name:'dashboard_discuss_portal',
         path:'user/discuss',
         icons:Pencil,
     },
     {
-        name:'Your Created Course',
+        name:'dashboard_created_course',
         path:'/mentor/material',
         icons:Pencil,
     },
     {
-        name:'Materials created by you',
+        name:'dashboard_materials',
         path:'/mentor/material',
         icons:Pencil,   
     },
     {
-        name:'Digital Library',
+        name:'dashboard_digital_library',
         path:'/mentor/digital-library',
         icons:Pencil,
     },
     {
-        name:'Reach fast by news',
+        name:'dashboard_reach_news',
         path:'/mentor/meetings',
         icons:Pencil,
     },
@@ -171,10 +172,11 @@ const options = {
 const month=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 const Classroom = () => {
+  const { t } = useTranslation();
   const [chartData,setChartData]=useState({
     labels:classReport.map((data)=>data.class),
     datasets:[{
-        label:"Class Performance",
+        label: t("chart_class_performance"),
         data:classReport.map((data)=>data.performance),
         backgroundColor:classReport.map((data)=>data.color),
         
@@ -182,16 +184,16 @@ const Classroom = () => {
     }]
   })
   const [chartAnalysis,setChartAnalysis]=useState({
-    labels:month,
+    labels: month.map(m => t(`months_${m.toLowerCase()}`)),
     datasets:[{
-        label:"Class 1",
+        label: t("chart_class"),
         data:class1.map((data)=>data.performance),
         borderColour:'red'
         
     }]
 })
 const [createdTopics,setCreatedTopics]=useState({
-    labels: ['Assignments', 'Test', 'Meetings'],
+    labels: [t("chart_assignments"), t("chart_test"), t("chart_meetings")],
     datasets:[{
         data: [12, 19, 3],
         backgroundColor: [
@@ -215,7 +217,7 @@ const [createdTopics,setCreatedTopics]=useState({
                         <button >
                             <img src={obj.icons} className='w-[50px]'/>
                         </button>
-                        {obj.name}
+                        {t(obj.name)}
                    </Link>
                 ))}
        
@@ -240,16 +242,16 @@ const [createdTopics,setCreatedTopics]=useState({
                     <div className={`p-5 rounded-lg font-comf  w-5/6 bg-green-200 text-sm flex-row-between`} >
 
                         <div className=" font-semibold gap-2">
-                            <p>Class : 5</p>
-                            <p>Subject: Envioment Science</p>
-                            <p>Students: 45</p>
+                            <p>{t("class_label")} : 5</p>
+                            <p>{t("subject_label")}: {t("subject_environment_science")}</p>
+                            <p>{t("students_label")}: 45</p>
 
                         </div>
                     
                         <div>
                             <p className="text-center flex-col flex justify-center">
                                <b>45%</b>
-                               <p>Average</p>
+                               <p>{t("average_label")}</p>
                             </p>
                         
                         </div>

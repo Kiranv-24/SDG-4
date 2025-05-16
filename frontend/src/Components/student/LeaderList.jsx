@@ -1,6 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const LeadersList = () => {
+  const { t } = useTranslation();
+  
   const leaders = [
     {
       name: "Ankush ",
@@ -23,14 +26,14 @@ const LeadersList = () => {
 
   return (
     <div className="bg-gray-100 p-4 m-6">
-      <h2 className="text-2xl font-bold mb-4">Top Scorers</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("leaderboard")}</h2>
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Ratings</th>
-              <th className="px-4 py-2">Remarks</th>
+              <th className="px-4 py-2">{t("register_name")}</th>
+              <th className="px-4 py-2">{t("chart_average")}</th>
+              <th className="px-4 py-2">{t("remarks")}</th>
             </tr>
           </thead>
           <tbody>
@@ -41,7 +44,6 @@ const LeadersList = () => {
               >
                 <td className="border px-4 py-2">{leader.name}</td>
                 <td className="border px-4 py-2">{leader.marks}</td>
-
                 <td className="border px-4 py-2">{leader.remarks}</td>
               </tr>
             ))}

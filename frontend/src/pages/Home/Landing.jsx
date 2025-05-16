@@ -1,10 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Typewriter } from "react-simple-typewriter";
-import { useNavigate } from "react-router";
-import axios from "axios";
-import { useTranslation } from "react-i18next";
-import i18n from "../../Language/i18n";
+import React, { useState, useEffect } from "react";import { Link } from "react-router-dom";import { Typewriter } from "react-simple-typewriter";import { useNavigate } from "react-router";import axios from "axios";import { useTranslation } from "react-i18next";import i18n from "../../Language/i18n";import LanguageSelector from "../../Components/LanguageSelector";
 import CancelIcon from "@mui/icons-material/Cancel";
 import primaryImage from "../../assets/primary-background.png";
 import Demo from "../../assets/demo.jpg";
@@ -242,24 +236,7 @@ const Landing = () => {
             ) : (
               ""
             )}
-            <select
-              name="language"
-              className="outline-none"
-              id="language"
-              onChange={() => {
-                changeLanguage(document.getElementById("language").value);
-              }}
-            >
-              <option value="en">English</option>
-              <option value="be">বাংলা</option>
-              <option value="hi">हिंदी</option>
-              <option value="ta">தமிழ்</option>
-              {/*Tamil*/}
-              <option value="ka">ಕನ್ನಡ</option>
-              {/*Kannada*/}
-              <option value="pu">ਪੰਜਾਬੀ</option>
-              {/*Punjabi*/}
-            </select>
+            <LanguageSelector />
             {user ? (
               <button
                 className=" primary-btn "
