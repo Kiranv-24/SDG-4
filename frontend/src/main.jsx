@@ -7,6 +7,9 @@ import App from "./App";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
+// Initialize PDF.js worker configuration
+import './utils/pdfUtils';
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 const queryClient = new QueryClient({
   defaultOptions: {

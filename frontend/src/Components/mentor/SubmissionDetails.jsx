@@ -154,8 +154,8 @@ function SubmissionDetails() {
         </Box>
       </Box>
       
-      <div className="details-container space-y-4">
-        {details.length > 0 ? (
+        <div className="details-container space-y-4">
+          {details.length > 0 ? (
           <>
             {details.map((item, index) => (
               <Card
@@ -189,7 +189,7 @@ function SubmissionDetails() {
               </Card>
             ))}
           </>
-        ) : (
+          ) : (
           <Alert severity="info" className="mb-4">
             No answers submitted yet for this test attempt.
           </Alert>
@@ -198,7 +198,7 @@ function SubmissionDetails() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <Typography variant="h6" className="mb-2">
             Score Submission
-          </Typography>
+            </Typography>
           <div className="flex flex-col md:flex-row gap-4 items-start">
             <TextField
               label="Score"

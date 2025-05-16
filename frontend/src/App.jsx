@@ -38,7 +38,13 @@ import IndividualTest from "./Components/mentor/IndividualTest";
 import SubmissionDetails from "./Components/mentor/SubmissionDetails";
 import MySubmissions from "./Components/student/MySubmissions";
 import DigitalLibrary from "./Components/mentor/DigitalLibrary";
+import StudentDigitalLibrary from "./Components/student/DigitalLibrary";
 import BookChat from "./Components/student/BookChat";
+import BookViewer from "./Components/student/BookViewer";
+import DirectPdfViewer from "./Components/student/DirectPdfViewer";
+import VideoLibrary from "./Components/student/VideoLibrary";
+import VideoPlayer from "./Components/student/VideoPlayer";
+import VideoUpload from "./Components/mentor/VideoUpload";
 
 function App() {
   function isJWTValid() {
@@ -109,6 +115,11 @@ function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="confirm-booking/:id" element={<ConfirmBooking />} />
             <Route path="book-chat/:bookId" element={<BookChat />} />
+            <Route path="book-view/:bookId" element={<BookViewer />} />
+            <Route path="pdf-view/:bookId" element={<DirectPdfViewer />} />
+            <Route path="digital-library" element={<StudentDigitalLibrary />} />
+            <Route path="video-library" element={<VideoLibrary />} />
+            <Route path="video-player/:videoId" element={<VideoPlayer />} />
           </Route>
           <Route path="/mentor" element={<Dashboard />}>
             <Route path="my-Test" element={<Mentortest />} />
@@ -121,6 +132,9 @@ function App() {
             <Route path="material/:id" element={<MaterialSubject />} />
             <Route path="classroom" element={<Classroom />} />
             <Route path="digital-library" element={<DigitalLibrary />} />
+            <Route path="book-view/:bookId" element={<BookViewer />} />
+            <Route path="pdf-view/:bookId" element={<DirectPdfViewer />} />
+            <Route path="video-upload" element={<VideoUpload />} />
           </Route>
         </Routes>
       </BrowserRouter>

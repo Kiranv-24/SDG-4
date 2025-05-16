@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "fabric": "^6.6.5",
-    "react-icons": "^5.5.0"
+    "pdfjs-dist": "^5.2.133",
+    "react-icons": "^5.5.0",
+    "react-pdf": "^9.2.1"
   }
 }

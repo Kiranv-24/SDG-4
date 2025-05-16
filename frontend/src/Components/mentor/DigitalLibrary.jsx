@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import axiosInstance from '../../api/axios';
+import { Button, CircularProgress, Menu, MenuItem } from '@mui/material';
+import { ArrowDropDown } from '@mui/icons-material';
 
 const DigitalLibrary = () => {
   const [books, setBooks] = useState([]);
@@ -10,6 +12,8 @@ const DigitalLibrary = () => {
   const [bookTitle, setBookTitle] = useState('');
   const [bookDescription, setBookDescription] = useState('');
   const navigate = useNavigate();
+  const [viewerMenu, setViewerMenu] = useState(null);
+  const [selectedBookId, setSelectedBookId] = useState(null);
 
   useEffect(() => {
     fetchBooks();
@@ -63,6 +67,29 @@ const DigitalLibrary = () => {
 
   const handleChatWithBook = (bookId) => {
     navigate(`/user/book-chat/${bookId}`);
+  };
+
+  const handleOpenViewerMenu = (event, bookId) => {
+    setViewerMenu(event.currentTarget);
+    setSelectedBookId(bookId);
+  };
+
+  const handleCloseViewerMenu = () => {
+    setViewerMenu(null);
+  };
+
+  const openInAdvancedViewer = () => {
+    if (selectedBookId) {
+      navigate(`/mentor/book-view/${selectedBookId}`);
+    }
+    handleCloseViewerMenu();
+  };
+
+  const openInSimpleViewer = () => {
+    if (selectedBookId) {
+      navigate(`/mentor/pdf-view/${selectedBookId}`);
+    }
+    handleCloseViewerMenu();
   };
 
   return (
@@ -123,30 +150,39 @@ const DigitalLibrary = () => {
       {/* Books Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {books.map((book) => (
-          <div key={book._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div key={book._id || book.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="p-6">
               <h3 className="text-xl font-semibold mb-2">{book.title}</h3>
               <p className="text-gray-600 mb-4">{book.description}</p>
               <div className="flex justify-between items-center">
                 <button
-                  onClick={() => handleChatWithBook(book._id)}
+                  onClick={() => handleChatWithBook(book._id || book.id)}
                   className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
                   Chat with Book
                 </button>
-                <a
-                  href={`${axiosInstance.defaults.baseURL}/${book.filePath}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-600 hover:text-green-700"
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  endIcon={<ArrowDropDown />}
+                  onClick={(e) => handleOpenViewerMenu(e, book._id || book.id)}
                 >
-                  View PDF
-                </a>
+                  View Book
+                </Button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <Menu
+        anchorEl={viewerMenu}
+        open={Boolean(viewerMenu)}
+        onClose={handleCloseViewerMenu}
+      >
+        <MenuItem onClick={openInAdvancedViewer}>Advanced Viewer</MenuItem>
+        <MenuItem onClick={openInSimpleViewer}>Simple Viewer</MenuItem>
+      </Menu>
     </div>
   );
 };

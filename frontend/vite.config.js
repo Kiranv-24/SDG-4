@@ -9,4 +9,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ['react-pdf'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/react-pdf/, /node_modules/],
+    },
+  },
 })

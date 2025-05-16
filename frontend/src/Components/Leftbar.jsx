@@ -11,13 +11,16 @@ import { MdLeaderboard, MdAssignmentAdd } from "react-icons/md";
 import { SiBookstack } from "react-icons/si";
 import { PiExamFill } from "react-icons/pi";
 import { BiSolidReport, BiSolidLogOut } from "react-icons/bi";
-import { FaNewspaper } from "react-icons/fa";
+import { FaNewspaper, FaBook, FaRobot } from "react-icons/fa";
 import { AiFillSetting } from "react-icons/ai";
 import AssistantIcon from "@mui/icons-material/Assistant";
 import HomeIcon from "@mui/icons-material/Home";
 import ClassIcon from "@mui/icons-material/Class";
 import { LoaderIcon } from "react-hot-toast";
 import { VideoCall } from "@mui/icons-material";
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import ChatIcon from '@mui/icons-material/Chat';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 
 const Leftbar = () => {
   const data = GetUserQuery();
@@ -84,8 +87,29 @@ const Leftbar = () => {
                 </li>
               )}
               <li>
-              
-              </li>  <li>
+                <div
+                  className={
+                    selected === "/user/chatbot"
+                      ? "border-zinc-700  bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                      : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                  }
+                >
+                  <span className="inline-flex justify-center items-center ml-4"></span>
+                  <ChatIcon className="text-xl" />
+                  <span className="ml-2 text-sm tracking-wide truncate">
+                    <Link
+                      to="/user/chatbot"
+                      onClick={() => setSelected("/user/chatbot")}
+                    >
+                      AI Chatbot
+                    </Link>
+                  </span>
+                  <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-green-500 bg-green-50 rounded-full">
+                    New
+                  </span>
+                </div>
+              </li>
+              <li>
                 <div
                   className={
                     selected === "/user/meet"
@@ -474,6 +498,55 @@ const Leftbar = () => {
                     >
                       Logout
                     </Link>
+                  </span>
+                </div>
+              </li>
+              {/* Digital Library Link for both roles */}
+              <li>
+                <div
+                  className={
+                    selected === "/mentor/digital-library" || selected === "/user/digital-library"
+                      ? "border-zinc-700 bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                      : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                  }
+                >
+                  <span className="inline-flex justify-center items-center ml-4"></span>
+                  <LibraryBooksIcon className="text-xl" />
+                  <span className="ml-2 text-sm tracking-wide truncate">
+                    <Link
+                      to={user?.role === "mentor" ? "/mentor/digital-library" : "/user/digital-library"}
+                      onClick={() => setSelected(user?.role === "mentor" ? "/mentor/digital-library" : "/user/digital-library")}
+                    >
+                      Digital Library
+                    </Link>
+                  </span>
+                  <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-green-500 bg-green-50 rounded-full">
+                    New
+                  </span>
+                </div>
+              </li>
+              
+              {/* Video Library Link for both roles */}
+              <li>
+                <div
+                  className={
+                    selected === "/mentor/video-upload" || selected === "/user/video-library"
+                      ? "border-zinc-700 bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                      : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                  }
+                >
+                  <span className="inline-flex justify-center items-center ml-4"></span>
+                  <VideoLibraryIcon className="text-xl" />
+                  <span className="ml-2 text-sm tracking-wide truncate">
+                    <Link
+                      to={user?.role === "mentor" ? "/mentor/video-upload" : "/user/video-library"}
+                      onClick={() => setSelected(user?.role === "mentor" ? "/mentor/video-upload" : "/user/video-library")}
+                    >
+                      {user?.role === "mentor" ? "Upload Videos" : "Video Library"}
+                    </Link>
+                  </span>
+                  <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-red-500 bg-red-50 rounded-full">
+                    New
                   </span>
                 </div>
               </li>

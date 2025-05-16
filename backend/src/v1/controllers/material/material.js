@@ -194,15 +194,15 @@ const materialController = {
 
       // Then query materials using the subject ID
       const materials = await prisma.material.findMany({
-        where: {
-          classId: findclassId.id,
+          where: {
+            classId: findclassId.id,
           subjectId: subject.id,
-        },
-        include: {
-          subject: true,
-          owner: true,
-        },
-      });
+          },
+          include: {
+            subject: true,
+            owner: true,
+          },
+        });
       
       console.log("Materials found:", materials.length);
 
@@ -272,10 +272,10 @@ const materialController = {
 
       // Find subjects for the class
       const subjects = await prisma.subject.findMany({
-        where: {
-          classId: findclassId.id,
-        },
-      });
+          where: {
+            classId: findclassId.id,
+          },
+        });
 
       console.log(`Found ${subjects.length} subjects for class ${classname}`);
 

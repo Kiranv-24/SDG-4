@@ -5,18 +5,19 @@ import helmet from "helmet";
 import createError from "http-errors";
 import morgan from "morgan";
 import path from "path";
+import fs from "fs";
 
 import favicon from "serve-favicon";
 import { Server } from 'socket.io';
-import "./v1/config/env.config";
+import "./v1/config/env.config.js";
 
-import { authRoutes, userRoute } from "./v1/routes";
-import videoRoutes from "./v1/routes/videoRoutes";
+import { authRoutes, userRoute } from "./v1/routes/index.js";
+import videoRoutes from "./v1/routes/videoRoutes.js";
 // New
 import OpenAI from "openai";
 
 import { PrismaClient } from "@prisma/client";
-import { app, server } from "./socket";
+import { app, server } from "./socket.js";
 import bookRoutes from './v1/routes/books.js';
 import chatRoutes from './v1/routes/chat.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -45,21 +46,48 @@ async function sendMessage(senderId, receiverId, message) {
   });
   return chatMessage;
 }
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory at:', uploadsDir);
+}
+
+// Update CORS options to allow PDF content type
 const corsOptions = {
   origin: ["http://localhost:3000", "https://green-iq-deployed.vercel.app"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'],
   optionSuccessStatus: 200,
 };
-
 
 app.use(cors(corsOptions));
 // Global variable appRoot with base dirname
 global.appRoot = path.resolve(__dirname);
 
 // Middlewares
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "https://res.cloudinary.com"],
+      frameAncestors: ["'self'", "http://localhost:3000", "https://green-iq-deployed.vercel.app"],
+      frameSrc: ["'self'", "data:", "http://localhost:*", "https://res.cloudinary.com"],
+      objectSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      workerSrc: ["'self'", "blob:", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"]
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.set("trust proxy", 1);
 app.use(limiter);
 app.use(express.json());
@@ -118,6 +146,25 @@ app.post(`/find-complexity`, async (req, res) => {
 // Add new routes
 app.use('/api/books', bookRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/videos', videoRoutes);
+
+// Serve static files from the uploads directory - make sure the path is correct
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.pdf')) {
+      res.set('Content-Type', 'application/pdf');
+      res.set('Content-Disposition', 'inline');
+      res.set('Access-Control-Allow-Origin', '*');
+      res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.set('X-Frame-Options', 'ALLOWALL');
+      
+      // Remove any CSP headers that would prevent iframe embedding
+      res.removeHeader('Content-Security-Policy');
+      res.removeHeader('Content-Security-Policy-Report-Only');
+    }
+  }
+}));
 
 // 404 Handler
 app.use((req, res, next) => {
