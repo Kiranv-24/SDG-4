@@ -21,8 +21,10 @@ import { VideoCall } from "@mui/icons-material";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import ChatIcon from '@mui/icons-material/Chat';
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import { useTranslation } from "react-i18next";
 
 const Leftbar = () => {
+  const { t } = useTranslation();
   const data = GetUserQuery();
   const [user, setuser] = useState();
   const [loading, setloading] = useState(true);
@@ -48,10 +50,10 @@ const Leftbar = () => {
             <div>
               {user ? (
                 <h1 className="font-bold">
-                  Hello, {user?.name.toUpperCase()}{" "}
+                  {t("sidebar_hello")}, {user?.name.toUpperCase()}{" "}
                 </h1>
               ) : (
-                <Link to="/login">Login</Link>
+                <Link to="/login">{t("nav_login")}</Link>
               )}
             </div>
           </div>
@@ -60,7 +62,7 @@ const Leftbar = () => {
               <li className="px-5">
                 <div className="flex flex-row items-center h-8">
                   <div className="text-sm font-light tracking-wide text-gray-500">
-                    Dashboard
+                    {t("sidebar_dashboard")}
                   </div>
                 </div>
               </li>
@@ -80,7 +82,7 @@ const Leftbar = () => {
                         to="/user/sathi"
                         onClick={() => setSelected("/user/sathi")}
                       >
-                        Virtual Mentor
+                        {t("sidebar_virtual_mentor")}
                       </Link>
                     </span>
                   </div>
@@ -101,11 +103,11 @@ const Leftbar = () => {
                       to="/user/chatbot"
                       onClick={() => setSelected("/user/chatbot")}
                     >
-                      AI Chatbot
+                      {t("sidebar_ai_chatbot")}
                     </Link>
                   </span>
                   <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-green-500 bg-green-50 rounded-full">
-                    New
+                    {t("new_label")}
                   </span>
                 </div>
               </li>
@@ -124,7 +126,7 @@ const Leftbar = () => {
                       to="/user/meet"
                       onClick={() => setSelected("/user/meet")}
                     >
-                      Video Call
+                      {t("sidebar_video_call")}
                     </Link>
                   </span>
                 </div>
@@ -142,7 +144,7 @@ const Leftbar = () => {
                       to="/user/personal-meeting"
                       onClick={() => setSelected("/user/personal-meeting")}
                     >
-                     Personal Meetings
+                     {t("sidebar_personal_meetings")}
                     </Link>
                   </span>
                 </div>
@@ -162,11 +164,11 @@ const Leftbar = () => {
                         to="/user/chat"
                         onClick={() => setSelected("/user/chat")}
                       >
-                        chat
+                        {t("sidebar_chat")}
                       </Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-indigo-500 bg-indigo-50 rounded-full">
-                      New
+                      {t("new_label")}
                     </span>
                   </div>
                 </li>
@@ -186,11 +188,11 @@ const Leftbar = () => {
                         to="/mentor/my-test"
                         onClick={() => setSelected("/mentor/my-test")}
                       >
-                        Mentor's Tests
+                        {t("mentor_tests")}
                       </Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-indigo-500 bg-indigo-50 rounded-full">
-                      New
+                      {t("new_label")}
                     </span>
                   </div>
                 </li>
@@ -210,11 +212,11 @@ const Leftbar = () => {
                         to="/user/test"
                         onClick={() => setSelected("/user/test")}
                       >
-                        Tests
+                        {t("sidebar_tests")}
                       </Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-indigo-500 bg-indigo-50 rounded-full">
-                      New
+                      {t("new_label")}
                     </span>
                   </div>
                 </li>
@@ -235,11 +237,11 @@ const Leftbar = () => {
                         to="/mentor/createtest"
                         onClick={() => setSelected("/mentor/createtest")}
                       >
-                        Create test
+                        {t("create_test")}
                       </Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-indigo-500 bg-indigo-50 rounded-full">
-                      New
+                      {t("new_label")}
                     </span>
                   </div>
                 </li>
@@ -261,7 +263,7 @@ const Leftbar = () => {
                       to="/user/discuss"
                       onClick={() => setSelected("/user/discuss")}
                     >
-                      Discuss
+                      {t("discuss")}
                     </Link>
                   </span>
                 </div>
@@ -282,7 +284,7 @@ const Leftbar = () => {
                         to="/user/book-meeting"
                         onClick={() => setSelected("/user/book-meeting")}
                       >
-                        Book Meeting
+                        {t("sidebar_personal_meetings")}
                       </Link>
                     </span>
                   </div>
@@ -294,7 +296,7 @@ const Leftbar = () => {
                 <span className="inline-flex justify-center items-center ml-4"></span>
                 <BiSolidReport className="text-xl" />
                 <span className="ml-2 text-sm tracking-wide truncate">
-                  <Link to="/user/my-submissions">Test Submissions</Link>
+                  <Link to="/user/my-submissions">{t("sidebar_mysubmissions")}</Link>
                 </span>
               </div>
             </li>
@@ -304,7 +306,7 @@ const Leftbar = () => {
                   <span className="inline-flex justify-center items-center ml-4"></span>
                   <HomeIcon className="text-xl" />
                   <span className="ml-2 text-sm tracking-wide truncate">
-                    <Link to="/">Home</Link>
+                    <Link to="/">{t("home")}</Link>
                   </span>
                 </div>
               </li>
@@ -313,7 +315,7 @@ const Leftbar = () => {
                   <span className="inline-flex justify-center items-center ml-4"></span>
                   <MdLeaderboard className="text-xl" />
                   <span className="ml-2 text-sm tracking-wide truncate">
-                    <Link to="/user/leaderboard">Leaderboard</Link>
+                    <Link to="/user/leaderboard">{t("leaderboard")}</Link>
                   </span>
                   <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-red-500 bg-red-50 rounded-full">
                     1.2k
@@ -326,7 +328,7 @@ const Leftbar = () => {
                     <span className="inline-flex justify-center items-center ml-4"></span>
                     <ClassIcon className="text-xl" />
                     <span className="ml-2 text-sm tracking-wide truncate">
-                      <Link to="/mentor/classroom">Your Classroom</Link>
+                      <Link to="/mentor/classroom">{t("your_classroom")}</Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-red-500 bg-red-50 rounded-full">
                       1.2k
@@ -341,7 +343,7 @@ const Leftbar = () => {
                   <span className="inline-flex justify-center items-center ml-4"></span>
                   <FaNewspaper className="text-xl" />
                   <span className="ml-2 text-sm tracking-wide truncate">
-                    <Link to="/user/newsfeed">News Feed</Link>
+                    <Link to="/user/newsfeed">{t("news_feed")}</Link>
                   </span>
                 </div>
               </li>
@@ -366,7 +368,7 @@ const Leftbar = () => {
                         }`}
                         onClick={() => setSelected("/user/material")}
                       >
-                        Materials
+                        {t("sidebar_materials")}
                       </Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-green-500 bg-green-50 rounded-full">
@@ -398,7 +400,7 @@ const Leftbar = () => {
                         }`}
                         onClick={() => setSelected("/mentor/Meetings")}
                       >
-                        Your Meetings
+                        {t("your_meetings")}
                       </Link>
                     </span>
                     <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-green-500 bg-green-50 rounded-full">
@@ -412,7 +414,7 @@ const Leftbar = () => {
               <li className="px-5">
                 <div className="flex flex-row items-center h-8">
                   <div className="text-sm font-light tracking-wide text-gray-500">
-                    Settings
+                    {t("settings")}
                   </div>
                 </div>
               </li>
@@ -432,7 +434,7 @@ const Leftbar = () => {
                       to="/user/profile"
                       onClick={() => setSelected("/user/profile")}
                     >
-                      Profile
+                      {t("profile")}
                     </Link>
                   </span>
                 </div>
@@ -452,7 +454,7 @@ const Leftbar = () => {
                       to="/user/settings"
                       onClick={() => setSelected("/user/settings")}
                     >
-                      Settings
+                      {t("settings")}
                     </Link>
                   </span>
                 </div>
@@ -473,7 +475,7 @@ const Leftbar = () => {
                         to="/mentor/createMaterial"
                         onClick={() => setSelected("/mentor/createMaterial")}
                       >
-                        Create Material
+                        {t("sidebar_create_material")}
                       </Link>
                     </span>
                   </div>
@@ -496,7 +498,7 @@ const Leftbar = () => {
                       }}
                       to="/login"
                     >
-                      Logout
+                      {t("sidebar_logout")}
                     </Link>
                   </span>
                 </div>
@@ -517,11 +519,11 @@ const Leftbar = () => {
                       to={user?.role === "mentor" ? "/mentor/digital-library" : "/user/digital-library"}
                       onClick={() => setSelected(user?.role === "mentor" ? "/mentor/digital-library" : "/user/digital-library")}
                     >
-                      Digital Library
+                      {t("sidebar_digital_library")}
                     </Link>
                   </span>
                   <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-green-500 bg-green-50 rounded-full">
-                    New
+                    {t("new_label")}
                   </span>
                 </div>
               </li>
@@ -542,11 +544,11 @@ const Leftbar = () => {
                       to={user?.role === "mentor" ? "/mentor/video-upload" : "/user/video-library"}
                       onClick={() => setSelected(user?.role === "mentor" ? "/mentor/video-upload" : "/user/video-library")}
                     >
-                      {user?.role === "mentor" ? "Upload Videos" : "Video Library"}
+                      {user?.role === "mentor" ? t("sidebar_video_library") : t("sidebar_video_library")}
                     </Link>
                   </span>
                   <span className="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-red-500 bg-red-50 rounded-full">
-                    New
+                    {t("new_label")}
                   </span>
                 </div>
               </li>

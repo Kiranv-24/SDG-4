@@ -8,6 +8,7 @@ import translationHI from './locales/hi.json';
 import translationKA from './locales/ka.json'; 
 import translationPU from './locales/pu.json'; 
 import translationTA from './locales/ta.json'; 
+import translationML from './locales/ml.json'; 
 
 i18n
   .use(initReactI18next)
@@ -30,6 +31,9 @@ i18n
       },
       ta: {
         translation:translationTA,
+      },
+      ml: {
+        translation:translationML,
       },
     },
     lng: 'en', // Default language
