@@ -26,19 +26,24 @@ function SubmissionDetails() {
   const fetchDetails = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await getSubmissionDetails(id);
       console.log("Submission details:", data);
       
       if (data.success) {
-        setDetails(data.message || []);
-        setAttemptInfo(data.attemptInfo);
-        
-        // Check if there's already a score
-        if (data.attemptInfo && data.attemptInfo.score !== null && data.attemptInfo.score !== undefined) {
-          setScore(data.attemptInfo.score.toString());
+        if (!data.attemptInfo) {
+          setError("Test attempt not found");
+        } else {
+          setDetails(data.message || []);
+          setAttemptInfo(data.attemptInfo);
+          
+          // Check if there's already a score
+          if (data.attemptInfo && data.attemptInfo.score !== null && data.attemptInfo.score !== undefined) {
+            setScore(data.attemptInfo.score.toString());
+          }
         }
       } else {
-        setError("Failed to load submission details: " + data.message);
+        setError(data.message || "Failed to load submission details");
       }
     } catch (error) {
       console.error("Error fetching submission details:", error);
@@ -81,13 +86,18 @@ function SubmissionDetails() {
   };
 
   useEffect(() => {
-    fetchDetails();
+    if (id) {
+      fetchDetails();
+    }
   }, [id]);
 
   if (loading) {
     return (
-      <div className="p-5 flex justify-center items-center h-[50vh]">
-        <CircularProgress />
+      <div className="p-5">
+        <h1 className="text-3xl font-merri mb-5">Submission Details</h1>
+        <div className="flex justify-center items-center h-[50vh]">
+          <CircularProgress />
+        </div>
       </div>
     );
   }
@@ -154,8 +164,8 @@ function SubmissionDetails() {
         </Box>
       </Box>
       
-        <div className="details-container space-y-4">
-          {details.length > 0 ? (
+      <div className="details-container space-y-4">
+        {details.length > 0 ? (
           <>
             {details.map((item, index) => (
               <Card
@@ -168,7 +178,7 @@ function SubmissionDetails() {
                     component="div"
                     className="font-semibold"
                   >
-                    Question {index + 1}: {item.question.question}
+                    Question {index + 1}: {item.question?.question || "Question not found"}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -189,7 +199,7 @@ function SubmissionDetails() {
               </Card>
             ))}
           </>
-          ) : (
+        ) : (
           <Alert severity="info" className="mb-4">
             No answers submitted yet for this test attempt.
           </Alert>
@@ -198,7 +208,7 @@ function SubmissionDetails() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <Typography variant="h6" className="mb-2">
             Score Submission
-            </Typography>
+          </Typography>
           <div className="flex flex-col md:flex-row gap-4 items-start">
             <TextField
               label="Score"

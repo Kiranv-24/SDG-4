@@ -68,24 +68,62 @@ const testController = {
 },
 async getMySubmissions(req,res){
   try{
-    const userId= req.user.id;
-    const findSub= await prisma.testAttempt.findMany({
-      where:{
-        userId:userId
+    const userId = req.user.id;
+    const findSub = await prisma.testAttempt.findMany({
+      where: {
+        userId: userId
       },
-      include:{
-        test:true
+      include: {
+        test: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            createdAt: true,
+            owner: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        },
+        submissions: {
+          select: {
+            id: true,
+            submittedAt: true
+          }
+        }
+      },
+      orderBy: {
+        startedAt: 'desc'
       }
-    })
+    });
+
+    // Format the response to include submission status
+    const formattedSubmissions = findSub.map(sub => ({
+      id: sub.id,
+      testId: sub.testId,
+      startedAt: sub.startedAt,
+      completedAt: sub.completedAt,
+      score: sub.score,
+      test: sub.test,
+      submissionCount: sub.submissions.length,
+      submissions: undefined // Remove the submissions array from response
+    }));
+
     res.status(200).json({
-      success:true,
-      message:findSub
-    })
-  }catch(err){
-  res.status(200).json({
-      success:false,
-      message:err
-    }) 
+      success: true,
+      message: formattedSubmissions
+    });
+  } catch(err) {
+    console.error("Error getting user submissions:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message || "Error retrieving submissions"
+    });
+  } finally {
+    await prisma.$disconnect();
   }
 },
   async getSubmissionsByTestId(req, res) {
@@ -114,13 +152,20 @@ async getMySubmissions(req,res){
           testId: id
         },
         include: {
-          user: true,
-          test: true,
-          submissions: {
+          user: {
             select: {
-              _count: true
+              id: true,
+              name: true,
+              email: true
             }
-          }
+          },
+          test: {
+            select: {
+              id: true,
+              title: true
+            }
+          },
+          submissions: true
         },
         orderBy: {
           startedAt: 'desc'
@@ -132,7 +177,8 @@ async getMySubmissions(req,res){
       // Format the submissions to include answer count
       const formattedSubmissions = submissions.map(sub => ({
         ...sub,
-        answerCount: sub.submissions.length
+        answerCount: sub.submissions.length,
+        submissions: undefined // Remove the submissions array from response
       }));
       
       res.status(200).json({
@@ -161,8 +207,26 @@ async getMySubmissions(req,res){
         id: id
       },
       include: {
-        user: true,
-        test: true
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        test: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            questions: {
+              select: {
+                id: true,
+                question: true
+              }
+            }
+          }
+        }
       }
     });
     
@@ -182,31 +246,27 @@ async getMySubmissions(req,res){
         attemptId: id
       },
       include: {
-        question: true,
-        attempt: {
-          include: {
-            test: true,
-            user: true
+        question: {
+          select: {
+            id: true,
+            question: true
           }
         }
+      },
+      orderBy: {
+        submittedAt: 'asc'
       }
     });
     
     console.log(`Found ${submissions.length} submissions for test attempt ${id}`);
     
-    if (submissions.length === 0) {
-      return res.json({
-        success: true,
-        message: [],
-        attemptInfo: attempt
-      });
-    }
-    
+    // Even if no submissions are found, we still want to return the attempt info
     res.status(200).json({
       success: true,
       message: submissions,
       attemptInfo: attempt
     });
+    
   } catch (err) {
     console.error("Error getting submission details:", err);
     res.status(500).json({

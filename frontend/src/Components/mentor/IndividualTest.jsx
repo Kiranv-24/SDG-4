@@ -100,20 +100,22 @@ function IndividualTest() {
                         : "Not Scored"}
                     </TableCell>
                     <TableCell>
-                      {submission.completedAt && (!submission.score && submission.score !== 0) ? (
+                      {submission.completedAt && (
                         <Link
                           to={`/mentor/submission-details/${submission.id}`}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline flex items-center gap-2"
                         >
-                          Score Test
+                          <span>View Details</span>
+                          {submission.score !== null && submission.score !== undefined ? (
+                            <CheckCheck size={16} className="text-green-600" />
+                          ) : null}
                         </Link>
-                      ) : submission.completedAt ? (
-                        <div className="flex items-center text-green-600">
-                          <CheckCheck size={16} className="mr-1" />
-                          Scored
+                      )}
+                      {!submission.completedAt && (
+                        <div className="text-amber-600 flex items-center gap-2">
+                          <Clock size={16} />
+                          <span>In Progress</span>
                         </div>
-                      ) : (
-                        <div className="text-amber-600">In Progress</div>
                       )}
                     </TableCell>
                   </TableRow>

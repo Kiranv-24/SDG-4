@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-const API_BASE_URL = 'https://api.videosdk.live/v2';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -18,63 +17,62 @@ const getAuthHeaders = () => {
 // Get the auth token from our backend
 export const getAuthToken = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/v1/user/create-video-token`, {
+    const response = await axios.get(`${BASE_URL}/v1/video/token`, {
       headers: getAuthHeaders(),
     });
-    
-    if (!response.data.success) {
-      throw new Error(response.data.error || 'Failed to get video token');
-    }
-    
-    return response.data.token;
+    return response.data;
   } catch (error) {
     console.error('Error getting video token:', error);
-    throw error;
+    throw new Error(error.response?.data?.error || 'Failed to get video token');
   }
 };
 
 // Create a meeting using our backend
-export const createMeeting = async ({ token }) => {
+export const createMeeting = async () => {
   try {
-    // Create the meeting in our backend
-    const backendResponse = await axios.post(
+    const response = await axios.post(
       `${BASE_URL}/v1/video/meetings`,
-      {
-        title: 'New Meeting',
-        description: '',
-        participants: []
-      },
+      {},
       {
         headers: getAuthHeaders(),
       }
     );
-
-    if (!backendResponse.data.success) {
-      throw new Error(backendResponse.data.error || 'Failed to create meeting');
-    }
-
-    // Return the roomId from the backend response
-    return backendResponse.data.roomId;
+    return response.data;
   } catch (error) {
     console.error('Error creating meeting:', error);
-    throw error;
+    throw new Error(error.response?.data?.error || 'Failed to create meeting');
+  }
+};
+
+// Join a meeting
+export const joinMeeting = async (meetingId) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/v1/video/meetings/${meetingId}/join`,
+      {},
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error joining meeting:', error);
+    throw new Error(error.response?.data?.error || 'Failed to join meeting');
   }
 };
 
 // Get all meetings for the current user
 export const getMeetings = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/v1/video/meetings`, {
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.data.success) {
-      throw new Error(response.data.error || 'Failed to fetch meetings');
-    }
-
-    return response.data.meetings;
+    const response = await axios.get(
+      `${BASE_URL}/v1/video/meetings`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
   } catch (error) {
     console.error('Error fetching meetings:', error);
-    throw error;
+    throw new Error(error.response?.data?.error || 'Failed to fetch meetings');
   }
 };
