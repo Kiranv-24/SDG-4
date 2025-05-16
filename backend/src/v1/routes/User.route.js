@@ -11,12 +11,31 @@ import authMiddleware from "../middlewares/Auth.middleware";
 import messageController from "../controllers/message/message";
 import videoCallController from "../controllers/videocall/videoController";
 import { PrismaClient } from "@prisma/client";
+import multer from "multer";
 //import testController from "../controllers/test/test";
 
 const router = express.Router();
+
+// Configure multer for PDF file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'), false);
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+});
+
 router.post(
   "/create-material",
   authMiddleware,
+  upload.single('pdfFile'),
   materialController.createMaterialsMentor
 );
 router.get(
