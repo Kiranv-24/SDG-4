@@ -59,8 +59,6 @@ export const Footer_2_Links = [
 ];
 export const Navbar_Links = [
   {
-    name: "ABOUT",
-    path: "/about",
-    protected: false,
+    
   },
 ];

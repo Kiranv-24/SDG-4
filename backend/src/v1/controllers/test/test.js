@@ -30,6 +30,28 @@ const testController = {
     const attempt = await prisma.testAttempt.findUnique({
       where: {
         id: attemptId
+      },
+      include: {
+        test: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            owner: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     });
     
@@ -41,20 +63,75 @@ const testController = {
     }
 
     // Update the test attempt with the score
-    await prisma.testAttempt.update({
+    const updatedAttempt = await prisma.testAttempt.update({
       where: {
         id: attemptId
       },
       data: {
         score: scoreNumber
+      },
+      include: {
+        test: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            owner: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     });
     
     console.log(`Successfully scored test attempt ${attemptId} with score ${scoreNumber}`);
     
+    // Emit socket event to notify the student
+    try {
+      const io = req.app.get("io");
+      if (io) {
+        const eventData = {
+          userId: attempt.userId,
+          testId: attempt.testId,
+          attemptId: attempt.id,
+          score: scoreNumber,
+          testTitle: attempt.test.title
+        };
+        
+        console.log("Emitting testScored event:", eventData);
+        io.to(attempt.userId).emit("testScored", eventData);
+        console.log(`Emitted testScored event to user ${attempt.userId}`);
+      } else {
+        console.warn("Socket.io instance not available");
+      }
+    } catch (socketError) {
+      console.error("Error emitting socket event:", socketError);
+      // Continue with the response even if socket emission fails
+    }
+    
     res.status(200).json({
       success: true,
-      message: "Score submitted successfully"
+      message: "Score submitted successfully",
+      data: {
+        attemptId: updatedAttempt.id,
+        score: updatedAttempt.score,
+        testId: updatedAttempt.testId,
+        userId: updatedAttempt.userId,
+        test: updatedAttempt.test,
+        user: updatedAttempt.user,
+        startedAt: updatedAttempt.startedAt,
+        completedAt: updatedAttempt.completedAt
+      }
     });
   } catch(err) {
     console.error("Error scoring test:", err);

@@ -21,6 +21,9 @@ import { app, server } from "./socket.js";
 import bookRoutes from './v1/routes/books.js';
 import chatRoutes from './v1/routes/chat.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createServer } from "http";
+import userRouter from "./v1/routes/User.route";
+import { authMiddleware } from "./v1/middleware/auth";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // This is also the default, can be omitted
@@ -56,7 +59,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Update CORS options to allow PDF content type
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://green-iq-deployed.vercel.app"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://green-iq-deployed.vercel.app"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -180,10 +183,51 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Socket.io setup
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Authorization"]
+  },
+  transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
+
+// Socket.io connection handling
+io.on("connection", (socket) => {
+  console.log("New client connected:", socket.id);
+
+  socket.on("join", (data) => {
+    if (data.userId) {
+      socket.join(data.userId);
+      console.log(`User ${data.userId} joined their room (socket: ${socket.id})`);
+    }
+  });
+
+  socket.on("error", (error) => {
+    console.error("Socket error:", error);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`Client disconnected (${socket.id}). Reason: ${reason}`);
+  });
+});
+
+// Make io available to routes
+app.set("io", io);
+
+// Routes
+app.use("/v1/user", userRouter);
 
 // Server Configs
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 @ http://localhost:${PORT}`);
   console.log(`connected to ${process.env.DATABASE_URL}`);
 });
+
+export default app;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Pencil from "../../assets/pencil.png";
-import View from "../../assets/analysis.png";
+import { BsPencil } from "react-icons/bs";
+import { BiAnalyse } from "react-icons/bi";
 import Searchbox from "../SearchBox";
 import { Bar } from "react-chartjs-2";
 import { Line } from "react-chartjs-2";
@@ -14,32 +14,32 @@ const navigationLink = [
   {
     name: "Meetings",
     path: "/mentor/meetings",
-    icons: Pencil,
+    icons: BsPencil,
   },
   {
     name: "Test",
     path: "/mentor/my-test",
-    icons: Pencil,
+    icons: BsPencil,
   },
   {
     name: "Discussion",
     path: "user/discuss",
-    icons: Pencil,
+    icons: BsPencil,
   },
   {
     name: "Your Course",
     path: "/mentor/material",
-    icons: Pencil,
+    icons: BsPencil,
   },
   {
     name: "Materials",
     path: "/mentor/material",
-    icons: Pencil,
+    icons: BsPencil,
   },
   {
     name: "News Feed",
     path: "/mentor/meetings",
-    icons: Pencil,
+    icons: BsPencil,
   },
 ];
 const classReport = [
@@ -203,11 +203,12 @@ const Leaderboard = () => {
         <div className="w-2/6 flex-row-center flex-wrap ">
           {navigationLink.map((obj, id) => (
             <Link
+              key={id}
               to={obj.path}
               className="bg-green-200 h-[100px] gap-2 rounded-md w-[100px] font-comf text-sm flex flex-col justify-center items-center m-2"
             >
               <button>
-                <img src={obj.icons} className="w-[50px]" />
+                <obj.icons className="w-[50px] h-[50px]" />
               </button>
               {obj.name}
             </Link>

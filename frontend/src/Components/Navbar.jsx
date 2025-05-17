@@ -15,9 +15,7 @@ function Navbar() {
       <div className=" bg-zinc-700   p-4 ">
         <div className="flex justify-between ">
           <div>
-            <a href="/">
-              <h1 className="text-2xl font-bold text-white">GreenIQ</h1>
-            </a>
+            
           </div>
           <div>
             <ul className="flex space-x-4 text-white">

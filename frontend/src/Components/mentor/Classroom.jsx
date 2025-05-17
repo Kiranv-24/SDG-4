@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import Pencil from '../../assets/pencil.png';
-import View from '../../assets/analysis.png';
+import { BsPencil } from "react-icons/bs";
+import { BiAnalyse } from "react-icons/bi";
 import Searchbox from '../SearchBox';
 import {Bar} from "react-chartjs-2"
 import { Line } from 'react-chartjs-2';
@@ -14,40 +14,39 @@ const navigationLink=[
     {
         name:'Check out your meetings',
         path:'/mentor/meetings',
-        icons:Pencil,
+        icons:BsPencil,
     },
     {
         name:'View your created test',
         path:'/mentor/my-test',
-        icons:Pencil,
+        icons:BsPencil,
     },
     {
         name:'Discuss in portal',
         path:'user/discuss',
-        icons:Pencil,
+        icons:BsPencil,
     },
     {
         name:'Your Created Course',
         path:'/mentor/material',
-        icons:Pencil,
+        icons:BsPencil,
     },
     {
         name:'Materials created by you',
         path:'/mentor/material',
-        icons:Pencil,   
+        icons:BsPencil,   
     },
     {
         name:'Digital Library',
         path:'/mentor/digital-library',
-        icons:Pencil,
+        icons:BsPencil,
     },
     {
         name:'Reach fast by news',
         path:'/mentor/meetings',
-        icons:Pencil,
+        icons:BsPencil,
     },
-    
-]
+];
 const classReport=[
     
     {
@@ -209,16 +208,18 @@ const [createdTopics,setCreatedTopics]=useState({
   return (
     <div className='base-container gap-20 py-[5vh]'>
         <div className='flex-row-center mb-10'>
-         
-                {navigationLink.map((obj,id)=>(
-                    <Link to={obj.path} className='bg-green-200 h-[70px] px-2 gap-2 rounded-md w-[200px] font-comf text-sm flex flex-row justify-between items-center m-2'>
-                        <button >
-                            <img src={obj.icons} className='w-[50px]'/>
-                        </button>
-                        {obj.name}
-                   </Link>
-                ))}
-       
+            {navigationLink.map((obj,id)=>(
+                <Link 
+                    key={id}
+                    to={obj.path} 
+                    className='bg-green-200 h-[70px] px-2 gap-2 rounded-md w-[200px] font-comf text-sm flex flex-row justify-between items-center m-2'
+                >
+                    <button>
+                        <obj.icons className='w-[50px] h-[50px]'/>
+                    </button>
+                    {obj.name}
+                </Link>
+            ))}
         </div>
         <div className='flex-row-between space-x-2 w-full h-[220px]'>
             <div className='w-2/6 h-full bg-slate-300 rounded-lg shadow-md p-5'>
@@ -230,33 +231,27 @@ const [createdTopics,setCreatedTopics]=useState({
             <div className='w-2/6 h-full bg-slate-300 rounded-lg shadow-md p-5'>
                 <Doughnut data={createdTopics} options={options} />
             </div>
-            
         </div>
         <hr className='my-5'/>
         <div className=''>
             <Searchbox/>
             <div className='flex flex-col justify-center items-center gap-5'>
                 {navigationLink.map((obj,id)=>(
-                    <div className={`p-5 rounded-lg font-comf  w-5/6 bg-green-200 text-sm flex-row-between`} >
-
-                        <div className=" font-semibold gap-2">
+                    <div key={id} className={`p-5 rounded-lg font-comf w-5/6 bg-green-200 text-sm flex-row-between`} >
+                        <div className="font-semibold gap-2">
                             <p>Class : 5</p>
                             <p>Subject: Envioment Science</p>
                             <p>Students: 45</p>
-
                         </div>
-                    
-                        <div>
-                            <p className="text-center flex-col flex justify-center">
-                               <b>45%</b>
-                               <p>Average</p>
-                            </p>
-                        
+                        <div className="text-center flex flex-col justify-center">
+                            <span className="font-bold">45%</span>
+                            <span>Average</span>
                         </div>
                         <button className=''>
-                            <img src={View} className='w-[40px]'/>
+                            <BiAnalyse className='w-[40px] h-[40px]'/>
                         </button>
-                    </div>))}
+                    </div>
+                ))}
             </div>
         </div>
     </div>

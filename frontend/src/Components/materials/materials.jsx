@@ -3,11 +3,6 @@ import { getSubjectsQuery } from "../../api/material";
 import Leftbar from "../Leftbar";
 import { useNavigate } from "react-router";
 import Loading from "../Loading";
-import geo from "../../assets/geo.jpg";
-import history from "../../assets/history.jpg";
-import maths from "../../assets/maths.jpg";
-import phy from "../../assets/physics.jpg";
-import chemistry from "../../assets/chemistry.jpg";
 
 function Material() {
   const data = getSubjectsQuery();
@@ -17,9 +12,7 @@ function Material() {
   useEffect(() => {
     if (data.isSuccess) {
       console.log(data.data);
-      // Filter out the "Physics" subject from the data if it exists
-
-      setSubjects(data.data); // Reverse the array here
+      setSubjects(data.data);
     }
   }, [data?.data]);
 
