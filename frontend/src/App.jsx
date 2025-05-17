@@ -45,6 +45,8 @@ import DirectPdfViewer from "./Components/student/DirectPdfViewer";
 import VideoLibrary from "./Components/student/VideoLibrary";
 import VideoPlayer from "./Components/student/VideoPlayer";
 import VideoUpload from "./Components/mentor/VideoUpload";
+import TopicDiscussion from "./Components/mentor/TopicDiscussion";
+import StudentTopicDiscussion from "./Components/student/TopicDiscussion";
 
 function App() {
   function isJWTValid() {
@@ -120,6 +122,7 @@ function App() {
             <Route path="digital-library" element={<StudentDigitalLibrary />} />
             <Route path="video-library" element={<VideoLibrary />} />
             <Route path="video-player/:videoId" element={<VideoPlayer />} />
+            <Route path="topic-discussion" element={<StudentTopicDiscussion />} />
           </Route>
           <Route path="/mentor" element={<Dashboard />}>
             <Route path="my-Test" element={<Mentortest />} />
@@ -135,6 +138,7 @@ function App() {
             <Route path="book-view/:bookId" element={<BookViewer />} />
             <Route path="pdf-view/:bookId" element={<DirectPdfViewer />} />
             <Route path="video-upload" element={<VideoUpload />} />
+            <Route path="topic-discussion" element={<TopicDiscussion />} />
           </Route>
         </Routes>
       </BrowserRouter>

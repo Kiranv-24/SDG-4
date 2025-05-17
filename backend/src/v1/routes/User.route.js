@@ -12,6 +12,7 @@ import messageController from "../controllers/message/message";
 import videoCallController from "../controllers/videocall/videoController";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
+import topicController from "../controllers/topic/topic";
 //import testController from "../controllers/test/test";
 
 const router = express.Router();
@@ -144,5 +145,10 @@ router.get("/get-conversation/:id",authMiddleware,messageController.getMessage)
 router.get("/get-all-users",authMiddleware,userController.getAllUser)
 router.get("/all-convo",authMiddleware,messageController.getAllConversations)
 router.get("/getuserbyid/:id",authMiddleware,userController.getUserById)
+
+// Topic routes
+router.post("/create-topic", authMiddleware, topicController.createTopic);
+router.get("/get-topics", authMiddleware, topicController.getTopics);
+
 export default router;
 

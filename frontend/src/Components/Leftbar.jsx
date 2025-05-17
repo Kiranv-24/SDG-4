@@ -21,6 +21,7 @@ import { VideoCall } from "@mui/icons-material";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import ChatIcon from '@mui/icons-material/Chat';
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import { MdChat } from "react-icons/md";
 
 const Leftbar = () => {
   const data = GetUserQuery();
@@ -550,6 +551,49 @@ const Leftbar = () => {
                   </span>
                 </div>
               </li>
+              {user?.role === "mentor" ? (
+                <li>
+                  <div
+                    className={
+                      selected === "/mentor/topic-discussion"
+                        ? "border-zinc-700 bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                        : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                    }
+                  >
+                    <span className="inline-flex justify-center items-center ml-4"></span>
+                    <MdChat className="text-xl" />
+                    <span className="ml-2 text-sm tracking-wide truncate">
+                      <Link
+                        to="/mentor/topic-discussion"
+                        onClick={() => setSelected("/mentor/topic-discussion")}
+                      >
+                        Topic Discussion
+                      </Link>
+                    </span>
+                  </div>
+                </li>
+              ) : (
+                <li>
+                  <div
+                    className={
+                      selected === "/user/topic-discussion"
+                        ? "border-zinc-700 bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                        : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                    }
+                  >
+                    <span className="inline-flex justify-center items-center ml-4"></span>
+                    <MdChat className="text-xl" />
+                    <span className="ml-2 text-sm tracking-wide truncate">
+                      <Link
+                        to="/user/topic-discussion"
+                        onClick={() => setSelected("/user/topic-discussion")}
+                      >
+                        Topic Discussion
+                      </Link>
+                    </span>
+                  </div>
+                </li>
+              )}
             </ul>
           </div>
         </div>

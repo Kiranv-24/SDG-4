@@ -56,7 +56,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Update CORS options to allow PDF content type
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://green-iq-deployed.vercel.app"],
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -76,8 +76,9 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      mediaSrc: ["'self'", "blob:", "https://res.cloudinary.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "https://res.cloudinary.com"],
+      connectSrc: ["'self'", "https://res.cloudinary.com", "https://api.cloudinary.com"],
       frameAncestors: ["'self'", "http://localhost:3000", "https://green-iq-deployed.vercel.app"],
       frameSrc: ["'self'", "data:", "http://localhost:*", "https://res.cloudinary.com"],
       objectSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
