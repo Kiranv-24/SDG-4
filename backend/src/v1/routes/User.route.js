@@ -39,7 +39,7 @@ router.post(
   materialController.createMaterialsMentor
 );
 router.get(
-  "/get-materials",
+  "/get-materials/:subjectname",
   authMiddleware,
   materialController.getMaterialByClass
 );

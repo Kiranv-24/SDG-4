@@ -24,9 +24,8 @@ const getallSubjects = async () => {
 
 const getmaterial = async (subjectName) => {
   try {
-    const response = await axios.get(`${API_URL}/user/get-materials`, {
-      ...getAuthHeaders(),
-      params: { subjectName },
+    const response = await axios.get(`${API_URL}/user/get-materials/${subjectName}`, {
+      ...getAuthHeaders()
     });
     return response.data;
   } catch (error) {
