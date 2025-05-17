@@ -785,30 +785,166 @@ async getMySubmissions(req,res){
   // alows to get mentor all the test he/she has created til yet
   async getAllTestsCreatedByUser(req, res, next) {
     try {
-      // Get the user's ID from the request (assuming you have a way to identify the user)
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      
+      console.log("getAllTestsCreatedByUser called with:", {
+        userId,
+        userRole: req.user?.role,
+        userObject: req.user,
+        headers: req.headers
+      });
 
-      // Find all tests created by the user
-      const tests = await prisma.test.findMany({
+      if (!userId || !req.user) {
+        console.log("Missing user or userId in request");
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required"
+        });
+      }
+
+      // Verify user is a mentor
+      if (req.user.role !== 'mentor') {
+        console.log("Non-mentor user attempted to access mentor tests:", req.user.role);
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. Only mentors can access this endpoint."
+        });
+      }
+
+      // Log the query we're about to make
+      console.log("Attempting Prisma query with:", {
+        mentorId: userId,
+        queryType: "findMany",
+        model: "test"
+      });
+
+      // First get all test IDs for this mentor
+      const testIds = await prisma.test.findMany({
         where: {
-          mentorId: userId,
+          mentorId: userId
         },
-        include: {
-          class: true,
-          subject: true,
-           questions: true,
-        },
+        select: {
+          id: true
+        }
       });
 
-      res.json({
+      console.log(`Found ${testIds.length} test IDs for mentor ${userId}`);
+
+      // Then fetch full details for each test individually to handle null relations
+      const tests = await Promise.all(
+        testIds.map(async ({ id }) => {
+          try {
+            return await prisma.test.findUnique({
+              where: { id },
+              include: {
+                class: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                },
+                subject: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                },
+                questions: {
+                  select: {
+                    id: true,
+                    question: true
+                  }
+                },
+                _count: {
+                  select: {
+                    questions: true,
+                    attempts: true
+                  }
+                }
+              }
+            }).then(test => {
+              if (!test) return null;
+              
+              // Handle potentially null subject
+              const subject = test.subject || {
+                id: "",
+                name: "Unknown Subject"
+              };
+              
+              return {
+                ...test,
+                subject
+              };
+            }).catch(err => {
+              console.warn(`Error fetching test ${id}:`, err);
+              return null;
+            });
+          } catch (err) {
+            console.warn(`Error fetching test ${id}:`, err);
+            return null;
+          }
+        })
+      );
+
+      // Filter out any null results and transform the data
+      const validTests = tests
+        .filter(test => test !== null)
+        .map(test => ({
+          id: test.id || "",
+          title: test.title || "Untitled Test",
+          description: test.description || "",
+          createdAt: test.createdAt || new Date(),
+          class: test.class ? {
+            id: test.class.id || "",
+            name: test.class.name || "Unknown Class"
+          } : { id: "", name: "Unknown Class" },
+          subject: test.subject ? {
+            id: test.subject.id || "",
+            name: test.subject.name || "Unknown Subject"
+          } : { id: "", name: "Unknown Subject" },
+          submissionCount: test._count?.attempts || 0,
+          questionCount: test._count?.questions || 0,
+          questions: (test.questions || []).map(q => ({
+            id: q.id || "",
+            question: q.question || ""
+          }))
+        }));
+
+      console.log(`Successfully processed ${validTests.length} valid tests`);
+
+      return res.status(200).json({
         success: true,
-        message: tests,
+        message: validTests
       });
+
     } catch (error) {
-      console.error("Error getting tests:", error);
-      res.status(500).json({
+      console.error("Error in getAllTestsCreatedByUser:", {
+        error: error.message,
+        stack: error.stack,
+        code: error.code,
+        meta: error.meta
+      });
+
+      // Handle specific Prisma errors
+      if (error.code === 'P2002') {
+        return res.status(400).json({
+          success: false,
+          message: "Database constraint violation",
+          error: error.meta?.target?.join(', ')
+        });
+      }
+
+      if (error.code === 'P2025') {
+        return res.status(404).json({
+          success: false,
+          message: "Record not found",
+          error: error.meta?.cause
+        });
+      }
+
+      return res.status(500).json({
         success: false,
-        message: "Error getting tests.",
+        message: "Failed to fetch tests: " + error.message
       });
     } finally {
       await prisma.$disconnect();
@@ -883,39 +1019,6 @@ async getMySubmissions(req,res){
         classname: studentClassname
       });
       
-      // Get all classes to help debug
-      const allClasses = await prisma.class.findMany({
-        select: {
-          id: true,
-          name: true,
-        }
-      });
-      
-      console.log("All available classes:", allClasses.map(c => `"${c.name}"`));
-      
-      // Get all tests to check what's available
-      const allTests = await prisma.test.findMany({
-        include: {
-          class: {
-            select: {
-              name: true
-            }
-          },
-          subject: {
-            select: {
-              name: true
-            }
-          }
-        }
-      });
-      
-      console.log("All tests in database:", allTests.map(t => ({
-        id: t.id,
-        title: t.title,
-        className: t.class.name,
-        subjectName: t.subject.name
-      })));
-      
       // Find the class ID for the user's class - case insensitive
       let userClass = await prisma.class.findFirst({
         where: {
@@ -950,13 +1053,6 @@ async getMySubmissions(req,res){
           },
         });
         console.log("Created new class:", userClass);
-        
-        // For a newly created class, there won't be any tests yet
-        return res.json({
-          success: true,
-          message: [],
-          info: `Class '${studentClassname}' was created as it didn't exist before. No tests available yet.`
-        });
       }
       
       // Get all tests for the user's class
@@ -965,37 +1061,73 @@ async getMySubmissions(req,res){
           classId: userClass.id,
         },
         include: {
-          class: true,
-          subject: true,
-          owner: true,
-          questions: true,
+          class: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          subject: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          questions: {
+            select: {
+              id: true,
+              question: true
+            }
+          },
+          _count: {
+            select: {
+              questions: true,
+              attempts: true
+            }
+          }
         },
+        orderBy: {
+          createdAt: 'desc'
+        }
       });
       
       console.log(`Found ${tests.length} tests for class ${userClass.name}`);
-      tests.forEach(test => {
-        console.log(`- Test: "${test.title}" (${test.id}) by ${test.owner.name}, questions: ${test.questions.length}`);
-      });
       
       // Get the user's test attempts to show completion status
       const userAttempts = await prisma.testAttempt.findMany({
         where: {
           userId: req.user.id,
         },
+        select: {
+          id: true,
+          testId: true,
+          completedAt: true,
+          score: true
+        }
       });
       
       // Format tests with attempt information
-      const formattedTests = tests.map(test => {
-        const attempts = userAttempts.filter(a => a.testId === test.id);
-        return {
-          ...test,
-          questionCount: test.questions.length,
-          // Remove questions array to avoid sending too much data
-          questions: undefined,
-          attempts: attempts.length > 0,
-          completed: attempts.some(a => a.completedAt !== null),
-        };
-      });
+      const formattedTests = tests.map(test => ({
+        id: test.id,
+        title: test.title,
+        description: test.description,
+        createdAt: test.createdAt,
+        subject: test.subject,
+        class: test.class,
+        owner: test.owner,
+        questionCount: test._count.questions,
+        submissionCount: test._count.attempts,
+        attempts: userAttempts.filter(a => a.testId === test.id).length > 0,
+        completed: userAttempts.some(a => a.testId === test.id && a.completedAt !== null),
+        score: userAttempts.find(a => a.testId === test.id)?.score
+      }));
 
       return res.json({
         success: true,
@@ -1010,8 +1142,10 @@ async getMySubmissions(req,res){
       return res.status(500).json({
         success: false,
         message: err.message || "An error occurred",
-        stack: err.stack,
+        error: err.stack
       });
+    } finally {
+      await prisma.$disconnect();
     }
   },
 };

@@ -64,7 +64,7 @@ model User {
   email              String              @unique
   classname          String
   password           String
-  phonenumber        String              @unique
+  phonenumber        String?
   role               String              @default("student")
   courses            Course[]
   tests              Test[]
@@ -145,17 +145,17 @@ model Course {
 
 model Test {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  description String
-  title       String   @unique
+  description String?
+  title       String
   mentorId    String
-  assetUrl    String[]
+  assetUrl    String[] @default([])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   classId     String
-  subjectId   String
+  subjectId   String?  @db.ObjectId
   owner       User     @relation(fields: [mentorId], references: [id])
   class       Class    @relation(fields: [classId], references: [id])
-  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subject     Subject? @relation(fields: [subjectId], references: [id])
   attempts    TestAttempt[]
   questions   TestQuestion[]
 }
