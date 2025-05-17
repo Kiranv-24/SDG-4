@@ -48,14 +48,20 @@ model Subject {
 }
 
 model Material {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   String
   userId    String
   subjectId String
   classId   String
-  owner     User    @relation(fields: [userId], references: [id])
-  subject   Subject @relation(fields: [subjectId], references: [id])
+  fileUrl   String?  @db.String
+  fileName  String?  @db.String
+  fileType  String?  @db.String
+  fileSize  Int?     @db.Int
+  owner     User     @relation(fields: [userId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
